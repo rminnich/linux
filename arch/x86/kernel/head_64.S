@@ -175,12 +175,19 @@ ENTRY(secondary_startup_64)
 	 */
 
 	movq	$(init_level4_pgt - __START_KERNEL_map), %rax
+#if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
+#define WAVE(x) movl $x, %edi; vmcall
+	WAVE('A')
+#else
 1:
 
 	/* Enable PAE mode and PGE */
 	movl	$(X86_CR4_PAE | X86_CR4_PGE), %ecx
 	movq	%rcx, %cr4
-
+#endif
+#if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
+	WAVE('k')
+#endif
 	/* Setup early boot stage 4 level pagetables. */
 	addq	phys_base(%rip), %rax
 	movq	%rax, %cr3
@@ -189,6 +196,9 @@ ENTRY(secondary_startup_64)
 	movq	$1f, %rax
 	jmp	*%rax
 1:
+#if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
+	WAVE('a')
+#else
 
 	/* Check if nx is implemented */
 	movl	$0x80000001, %eax
@@ -212,7 +222,10 @@ ENTRY(secondary_startup_64)
 	movl	$CR0_STATE, %eax
 	/* Make changes effective */
 	movq	%rax, %cr0
-
+#endif
+#if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
+	WAVE('r')
+#endif
 	/* Setup a boot time stack */
 	movq stack_start(%rip), %rsp
 
@@ -538,6 +551,10 @@ NEXT_PAGE(kasan_zero_pud)
 	__PAGE_ALIGNED_BSS
 NEXT_PAGE(empty_zero_page)
 	.skip PAGE_SIZE
+NEXT_PAGE(coreboot_tables)
+	.skip PAGE_SIZE
+.globl coreboot_tables_end
+coreboot_tables_end:
 
 #ifdef CONFIG_KASAN
 /*
