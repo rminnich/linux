@@ -53,9 +53,9 @@ void fpu__init_cpu(void)
 	early_printk("hi\n");
 #else
 	fpu__init_cpu_generic();
-#endif
 	fpu__init_cpu_xstate();
 	fpu__init_cpu_ctx_switch();
+#endif
 }
 
 /*
