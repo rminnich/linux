@@ -21,13 +21,89 @@
 #include <asm/efi.h>
 #include <asm/pci_x86.h>
 
+// temporary.
+/* The old plan 9 standby ... wave ... */
+
+/* Keep to debug trap.c */
+void wave(int c)
+{
+	__asm__  __volatile__("movl %0, %%edi\nvmcall\n" :  : "m"(c));
+}
+
+void hi(char *s) 
+{
+	if (! s)
+		s = "<NULL>";
+	while (*s)
+		wave(*s++);
+}
+
+/*
+ * for gdb: 
+ * call this anywhere in your code. 
+ *   die("yourturn with gdb\n");
+ *   gdb 9k
+ *   target remote localhost:1234
+ *   display/i $pc
+ *   set staydead = 0
+ *   stepi, and debug. 
+ * note, you can always resume after a die. Just set staydead = 0
+ */
+
+int staydead = 1;
+void dei(char *s)
+{
+	wave('d');
+	wave('i');
+	wave('e');
+	wave(':');
+	hi(s);
+	while(staydead);
+	staydead = 1;
+}
+
+
+void put8(uint8_t c)
+{
+	char x[] = "0123456789abcdef";
+	wave(x[c>>4]);
+	wave(x[c&0xf]);
+}
+
+void put16(uint16_t s)
+{
+	put8(s>>8);
+	put8(s);
+}
+
+void put32(uint32_t u)
+{
+	put16(u>>16);
+	put16(u);
+}
+
+void put64(uint64_t v)
+{
+	put32(v>>32);
+	put32(v);
+}
+
+// end temporary.
 static void early_vmcall_write(struct console *con, const char *str, unsigned n)
 {
-	char c;
+	char c = '>';
+	put64((uint64_t)str);
+	__asm__  __volatile__("movl %0, %%edi\nvmcall\n" :  : "m"(c));
+
 
 	while ((c = *str++) != '\0' && n-- > 0) {
-		__asm__  __volatile__("movb %0, %%dl\nvmcall\n" :  : "m"(c));
+		__asm__  __volatile__("movl %0, %%edi\nvmcall\n" :  : "m"(c));
 	}
+}
+void v(char *s)
+{
+	early_vmcall_write(NULL, "---------------", 1024);
+	early_vmcall_write(NULL, s, 1024);
 }
 
 static struct console early_vmcall_console = {
