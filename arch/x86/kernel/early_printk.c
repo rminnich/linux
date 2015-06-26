@@ -350,6 +350,7 @@ static int __init setup_early_printk(char *buf)
 {
 	int keep;
 
+	early_vmcall_write(NULL, "HI!\n", 4);
 	if (!buf)
 		return 0;
 
@@ -389,8 +390,9 @@ static int __init setup_early_printk(char *buf)
 			early_console_register(&early_dbgp_console, keep);
 #endif
 #ifdef CONFIG_EARLY_PRINTK_VMCALL
-		if (!strncmp(buf, "vmcall", 4))
+		if (!strncmp(buf, "vmcall", 4)) {
 			early_console_register(&early_vmcall_console, 1 || keep);
+		}
 #endif
 #ifdef CONFIG_HVC_XEN
 		if (!strncmp(buf, "xen", 3))

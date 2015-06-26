@@ -161,10 +161,13 @@ void fpstate_sanitize_xstate(struct fpu *fpu)
  */
 void fpu__init_cpu_xstate(void)
 {
+#if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
+#else
 	if (!cpu_has_xsave || !xfeatures_mask)
 		return;
 
 	cr4_set_bits(X86_CR4_OSXSAVE);
+#endif
 	xsetbv(XCR_XFEATURE_ENABLED_MASK, xfeatures_mask);
 }
 

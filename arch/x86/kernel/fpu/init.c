@@ -66,6 +66,9 @@ void fpu__init_cpu(void)
  */
 static void fpu__init_system_early_generic(struct cpuinfo_x86 *c)
 {
+#if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
+	early_printk("%s\n", __func__);
+#else
 	unsigned long cr0;
 	u16 fsw, fcw;
 
@@ -82,6 +85,7 @@ static void fpu__init_system_early_generic(struct cpuinfo_x86 *c)
 		set_cpu_cap(c, X86_FEATURE_FPU);
 	else
 		clear_cpu_cap(c, X86_FEATURE_FPU);
+#endif
 
 #ifndef CONFIG_MATH_EMULATION
 	if (!cpu_has_fpu) {
