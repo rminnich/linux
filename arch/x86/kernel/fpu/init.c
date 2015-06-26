@@ -26,9 +26,11 @@ static void fpu__init_cpu_ctx_switch(void)
  */
 static void fpu__init_cpu_generic(void)
 {
+#if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
+	early_printk("hi\n");
+#else
 	unsigned long cr0;
 	unsigned long cr4_mask = 0;
-
 	if (cpu_has_fxsr)
 		cr4_mask |= X86_CR4_OSFXSR;
 	if (cpu_has_xmm)
@@ -41,6 +43,7 @@ static void fpu__init_cpu_generic(void)
 	if (!cpu_has_fpu)
 		cr0 |= X86_CR0_EM;
 	write_cr0(cr0);
+#endif
 
 	/* Flush out any pending x87 state: */
 #ifdef CONFIG_MATH_EMULATION
@@ -56,7 +59,11 @@ static void fpu__init_cpu_generic(void)
  */
 void fpu__init_cpu(void)
 {
+#if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
+	early_printk("hi\n");
+#else
 	fpu__init_cpu_generic();
+#endif
 	fpu__init_cpu_xstate();
 	fpu__init_cpu_ctx_switch();
 }
