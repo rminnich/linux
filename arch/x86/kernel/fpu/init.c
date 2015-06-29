@@ -28,7 +28,7 @@ static void fpu__init_cpu_generic(void)
 {
 #if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
 	early_printk("hi\n");
-#else
+#endif
 	unsigned long cr0;
 	unsigned long cr4_mask = 0;
 	if (cpu_has_fxsr)
@@ -43,7 +43,6 @@ static void fpu__init_cpu_generic(void)
 	if (!cpu_has_fpu)
 		cr0 |= X86_CR0_EM;
 	write_cr0(cr0);
-#endif
 
 	/* Flush out any pending x87 state: */
 #ifdef CONFIG_MATH_EMULATION
@@ -61,11 +60,10 @@ void fpu__init_cpu(void)
 {
 #if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
 	early_printk("hi\n");
-#else
+#endif
 	fpu__init_cpu_generic();
 	fpu__init_cpu_xstate();
 	fpu__init_cpu_ctx_switch();
-#endif
 }
 
 /*
@@ -78,7 +76,7 @@ static void fpu__init_system_early_generic(struct cpuinfo_x86 *c)
 {
 #if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
 	early_printk("%s\n", __func__);
-#else
+#endif
 	unsigned long cr0;
 	u16 fsw, fcw;
 
@@ -95,7 +93,6 @@ static void fpu__init_system_early_generic(struct cpuinfo_x86 *c)
 		set_cpu_cap(c, X86_FEATURE_FPU);
 	else
 		clear_cpu_cap(c, X86_FEATURE_FPU);
-#endif
 
 #ifndef CONFIG_MATH_EMULATION
 	if (!cpu_has_fpu) {
