@@ -175,13 +175,14 @@ ENTRY(secondary_startup_64)
 	 */
 
 	movq	$(init_level4_pgt - __START_KERNEL_map), %rax
+1:
+
 #if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
 #define WAVE(x) movl $x, %edi; vmcall
 	WAVE('A')
-#else
-1:
-
 	/* Enable PAE mode and PGE */
+#else
+	// Already set as we want it set.
 	movl	$(X86_CR4_PAE | X86_CR4_PGE), %ecx
 	movq	%rcx, %cr4
 #endif
@@ -198,8 +199,7 @@ ENTRY(secondary_startup_64)
 1:
 #if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
 	WAVE('a')
-#else
-
+#endif
 	/* Check if nx is implemented */
 	movl	$0x80000001, %eax
 	cpuid
@@ -217,12 +217,11 @@ ENTRY(secondary_startup_64)
 
 	/* Setup cr0 */
 #define CR0_STATE	(X86_CR0_PE | X86_CR0_MP | X86_CR0_ET | \
-			 X86_CR0_NE | X86_CR0_WP | X86_CR0_AM | \
+			 X86_CR0_NE | X86_CR0_WP | /* X86_CR0_AM |*/ \
 			 X86_CR0_PG)
 	movl	$CR0_STATE, %eax
 	/* Make changes effective */
 	movq	%rax, %cr0
-#endif
 #if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
 	WAVE('r')
 #endif

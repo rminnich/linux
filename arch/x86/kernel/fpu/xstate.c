@@ -164,13 +164,12 @@ void fpu__init_cpu_xstate(void)
 #if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
 	extern void v(char *);
 	v("HI HERE fpu__init_cpu_xstate\n");
-#else
+#endif
 	if (!cpu_has_xsave || !xfeatures_mask)
 		return;
 
 	cr4_set_bits(X86_CR4_OSXSAVE);
 	xsetbv(XCR_XFEATURE_ENABLED_MASK, xfeatures_mask);
-#endif
 }
 
 /*
