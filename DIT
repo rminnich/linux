@@ -1,0 +1,4 @@
+ make vmlinux
+ objcopy -O binary vmlinux xxx
+ cp xxx ~/projects/akaros/kern/kfs/
+objdump -d vmlinux > vmlinux.asm
