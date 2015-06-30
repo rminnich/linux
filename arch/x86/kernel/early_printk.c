@@ -484,4 +484,9 @@ static int __init setup_early_printk(char *buf)
 	return 0;
 }
 
+void vmcall_console(void)
+{
+	early_console_register(&early_vmcall_console, 1);
+	printk("vmcall console ready?\n");
+}
 early_param("earlyprintk", setup_early_printk);
