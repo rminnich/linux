@@ -27,6 +27,11 @@
 
 static void early_init_intel(struct cpuinfo_x86 *c)
 {
+#if defined(CONFIG_VMMCP) && VMMCP==1
+	void v(char *);
+	v("early init intel? sod that\n");
+	return;
+#endif
 	u64 misc_enable;
 
 	/* Unmask CPUID levels if masked: */
@@ -374,6 +379,11 @@ static void detect_vmx_virtcap(struct cpuinfo_x86 *c)
 static void init_intel(struct cpuinfo_x86 *c)
 {
 	unsigned int l2 = 0;
+#if defined(CONFIG_VMMCP) && VMMCP==1
+	void v(char *);
+	v("init intel? sod that\n");
+	return;
+#endif
 
 	early_init_intel(c);
 

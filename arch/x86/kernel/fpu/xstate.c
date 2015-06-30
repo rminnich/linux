@@ -155,6 +155,9 @@ void fpstate_sanitize_xstate(struct fpu *fpu)
 	}
 }
 
+#if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
+	extern void v(char *);
+#endif
 /*
  * Enable the extended processor state save/restore feature.
  * Called once per CPU onlining.
@@ -162,14 +165,23 @@ void fpstate_sanitize_xstate(struct fpu *fpu)
 void fpu__init_cpu_xstate(void)
 {
 #if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
-	extern void v(char *);
 	v("HI HERE fpu__init_cpu_xstate\n");
 #endif
-	if (!cpu_has_xsave || !xfeatures_mask)
+	printk("%scpu_has_xsave xfeatures_mask: %lx\n", cpu_has_xsave? "YES" : "NO!" , xfeatures_mask);
+	if (!cpu_has_xsave || !xfeatures_mask){
+		printk("leaving %s\n", __func__);
 		return;
+	}
 
+	printk("%s: ", __func__);
 	cr4_set_bits(X86_CR4_OSXSAVE);
+	v("Done setting OSXSAVE in cr4");
+#if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
+	v("NOT DOING xsetbv because we're not allowed to\n");
+#else
 	xsetbv(XCR_XFEATURE_ENABLED_MASK, xfeatures_mask);
+#endif
+	v("DONE setting enabled masked in xfeatures_make\n");
 }
 
 /*
