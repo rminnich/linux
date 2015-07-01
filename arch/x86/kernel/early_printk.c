@@ -91,10 +91,7 @@ void put64(uint64_t v)
 // end temporary.
 static void early_vmcall_write(struct console *con, const char *str, unsigned n)
 {
-	char c = '>';
-	put64((uint64_t)str);
-	__asm__  __volatile__("movl %0, %%edi\nvmcall\n" :  : "m"(c));
-
+	char c;
 
 	while ((c = *str++) != '\0' && n-- > 0) {
 		__asm__  __volatile__("movl %0, %%edi\nvmcall\n" :  : "m"(c));
@@ -102,7 +99,7 @@ static void early_vmcall_write(struct console *con, const char *str, unsigned n)
 }
 void v(char *s)
 {
-	early_vmcall_write(NULL, "---------------", 1024);
+	//early_vmcall_write(NULL, "---------------", 1024);
 	early_vmcall_write(NULL, s, 1024);
 }
 

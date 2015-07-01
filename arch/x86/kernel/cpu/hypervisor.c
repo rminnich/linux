@@ -30,10 +30,13 @@ static const __initconst struct hypervisor_x86 * const hypervisors[] =
 #ifdef CONFIG_XEN
 	&x86_hyper_xen,
 #endif
-	&x86_hyper_vmware,
+//	&x86_hyper_vmware,
 	&x86_hyper_ms_hyperv,
 #ifdef CONFIG_KVM_GUEST
 	&x86_hyper_kvm,
+#endif
+#ifdef CONFIG_VMMCP
+	&x86_hyper_vmmcp,
 #endif
 };
 
@@ -49,7 +52,9 @@ detect_hypervisor_vendor(void)
 	for (p = hypervisors; p < hypervisors + ARRAY_SIZE(hypervisors); p++) {
 		h = *p;
 		pri = h->detect();
+		printk("%s scores %d; \n", h->name, pri);
 		if (pri != 0 && pri > max_pri) {
+			printk("%s is highest score so far\n", h->name);
 			max_pri = pri;
 			x86_hyper = h;
 		}
