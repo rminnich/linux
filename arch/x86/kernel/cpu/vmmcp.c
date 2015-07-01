@@ -45,7 +45,7 @@ static uint32_t __init vmmcp_platform(void)
 {
 	printk("VMMCP platform\n");
 	/* sooner or later we need to fix cpuid ... later. */
-	return 255;
+	return 1<<30;
 }
 
 /* no idea ... */

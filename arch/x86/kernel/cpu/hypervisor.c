@@ -27,16 +27,16 @@
 
 static const __initconst struct hypervisor_x86 * const hypervisors[] =
 {
+#ifdef CONFIG_VMMCP
+	&x86_hyper_vmmcp,
+#endif
 #ifdef CONFIG_XEN
 	&x86_hyper_xen,
 #endif
-//	&x86_hyper_vmware,
+	&x86_hyper_vmware,
 	&x86_hyper_ms_hyperv,
 #ifdef CONFIG_KVM_GUEST
 	&x86_hyper_kvm,
-#endif
-#ifdef CONFIG_VMMCP
-	&x86_hyper_vmmcp,
 #endif
 };
 
