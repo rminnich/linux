@@ -201,6 +201,11 @@ void __init probe_roms(void)
 	unsigned char c;
 	int i;
 
+// Should we config this out, make a cmdline option, or ...?
+#ifdef CONFIG_VMMCP
+	return;
+#endif
+
 	/* video rom */
 	upper = adapter_rom_resources[0].start;
 	for (start = video_rom_resource.start; start < upper; start += 2048) {
