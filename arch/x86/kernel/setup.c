@@ -1087,8 +1087,9 @@ void __init setup_arch(char **cmdline_p)
 	/*
 	 * Find and reserve possible boot-time SMP configuration:
 	 */
+#ifdef CONFIG_VMMCP
 	find_smp_config();
-
+#endif
 	reserve_ibft_region();
 
 	early_alloc_pgt_buf();
@@ -1247,6 +1248,9 @@ void __init setup_arch(char **cmdline_p)
 #endif
 #endif
 	x86_init.oem.banner();
+#ifdef CONFIG_VMMCP
+early_printk("HI HTERE!\n");
+#endif
 
 	x86_init.timers.wallclock_init();
 

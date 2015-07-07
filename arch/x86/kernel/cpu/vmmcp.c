@@ -38,7 +38,9 @@ static unsigned long vmmcp_get_tsc_khz(void)
 
 static void __init vmmcp_platform_setup(void)
 {
+	printk("vmmcp platform setup ...\n");
 	x86_platform.calibrate_tsc = vmmcp_get_tsc_khz;
+	printk(" DONE vmmcp platform setup ...\n");
 }
 
 static uint32_t __init vmmcp_platform(void)
