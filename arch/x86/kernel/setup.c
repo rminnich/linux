@@ -988,6 +988,7 @@ void __init setup_arch(char **cmdline_p)
 	memblock_x86_reserve_range_setup_data();
 
 	if (acpi_mps_check()) {
+printk("acpi_mps_check() says no\n");
 #ifdef CONFIG_X86_LOCAL_APIC
 		disable_apic = 1;
 #endif
@@ -1069,7 +1070,7 @@ void __init setup_arch(char **cmdline_p)
 	/*
 	 * Find and reserve possible boot-time SMP configuration:
 	 */
-#ifdef CONFIG_VMMCP
+#ifndef CONFIG_VMMCP
 	find_smp_config();
 #endif
 	reserve_ibft_region();
@@ -1112,16 +1113,22 @@ void __init setup_arch(char **cmdline_p)
 			(max_pfn_mapped<<PAGE_SHIFT) - 1);
 #endif
 
+#ifndef CONFIG_VMMCP
 	reserve_real_mode();
+#endif
 
 	trim_platform_memory_ranges();
 	trim_low_memory_range();
 
-	init_mem_mapping();
+{	init_mem_mapping();early_printk("	init_mem_mapping();\n");}
 
-	early_trap_pf_init();
+{	early_trap_pf_init();early_printk("	early_trap_pf_init();\n");}
 
-	setup_real_mode();
+#ifndef CONFIG_VMMCP
+{	setup_real_mode();early_printk("	setup_real_mode();\n");}
+#else
+	setup_clear_cpu_cap(X86_FEATURE_APIC);
+#endif
 
 	memblock_set_current_limit(get_max_mapped());
 
@@ -1131,50 +1138,50 @@ void __init setup_arch(char **cmdline_p)
 
 #ifdef CONFIG_PROVIDE_OHCI1394_DMA_INIT
 	if (init_ohci1394_dma_early)
-		init_ohci1394_dma_on_all_controllers();
+{		init_ohci1394_dma_on_all_controllers();early_printk("		init_ohci1394_dma_on_all_controllers();\n");}
 #endif
 	/* Allocate bigger log buffer */
 	setup_log_buf(1);
 
-	reserve_initrd();
+{	reserve_initrd();early_printk("	reserve_initrd();\n");}
 
 #if defined(CONFIG_ACPI) && defined(CONFIG_BLK_DEV_INITRD)
 	acpi_initrd_override((void *)initrd_start, initrd_end - initrd_start);
 #endif
 
-	vsmp_init();
+{	vsmp_init();early_printk("	vsmp_init();\n");}
 
-	io_delay_init();
+{	io_delay_init();early_printk("	io_delay_init();\n");}
 
 	/*
 	 * Parse the ACPI tables for possible boot-time SMP configuration.
 	 */
-	acpi_boot_table_init();
+{	acpi_boot_table_init();early_printk("	acpi_boot_table_init();\n");}
 
-	early_acpi_boot_init();
+{	early_acpi_boot_init();early_printk("	early_acpi_boot_init();\n");}
 
-	initmem_init();
+{	initmem_init();early_printk("	initmem_init();\n");}
 	dma_contiguous_reserve(max_pfn_mapped << PAGE_SHIFT);
 
 	/*
 	 * Reserve memory for crash kernel after SRAT is parsed so that it
 	 * won't consume hotpluggable memory.
 	 */
-	reserve_crashkernel();
+{	reserve_crashkernel();early_printk("	reserve_crashkernel();\n");}
 
-	memblock_find_dma_reserve();
+{	memblock_find_dma_reserve();early_printk("	memblock_find_dma_reserve();\n");}
 
 #ifdef CONFIG_KVM_GUEST
-	kvmclock_init();
+{	kvmclock_init();early_printk("	kvmclock_init();\n");}
 #endif
 
-	x86_init.paging.pagetable_init();
+{	x86_init.paging.pagetable_init();early_printk("	x86_init.paging.pagetable_init();\n");}
 
-	kasan_init();
+{	kasan_init();early_printk("	kasan_init();\n");}
 
 	if (boot_cpu_data.cpuid_level >= 0) {
 		/* A CPU has %cr4 if and only if it has CPUID */
-		mmu_cr4_features = __read_cr4();
+{		mmu_cr4_features = __read_cr4();early_printk("		mmu_cr4_features = __read_cr4();\n");}
 		if (trampoline_cr4_features)
 			*trampoline_cr4_features = mmu_cr4_features;
 	}
@@ -1194,42 +1201,42 @@ void __init setup_arch(char **cmdline_p)
 			min(KERNEL_PGD_PTRS, KERNEL_PGD_BOUNDARY));
 #endif
 
-	tboot_probe();
+{	tboot_probe();early_printk("	tboot_probe();\n");}
 
-	map_vsyscall();
+{	map_vsyscall();early_printk("	map_vsyscall();\n");}
 
-	generic_apic_probe();
+{	generic_apic_probe();early_printk("	generic_apic_probe();\n");}
 
-	early_quirks();
+{	early_quirks();early_printk("	early_quirks();\n");}
 
 	/*
 	 * Read APIC and some other early information from ACPI tables.
 	 */
-	acpi_boot_init();
-	sfi_init();
-	x86_dtb_init();
+{	acpi_boot_init();early_printk("	acpi_boot_init();\n");}
+{	sfi_init();early_printk("	sfi_init();\n");}
+{	x86_dtb_init();early_printk("	x86_dtb_init();\n");}
 
 	/*
 	 * get boot-time SMP configuration:
 	 */
 	if (smp_found_config)
-		get_smp_config();
+{		get_smp_config();early_printk("		get_smp_config();\n");}
 
-	prefill_possible_map();
+{	prefill_possible_map();early_printk("	prefill_possible_map();\n");}
 
-	init_cpu_to_node();
+{	init_cpu_to_node();early_printk("	init_cpu_to_node();\n");}
 
-	init_apic_mappings();
-	io_apic_init_mappings();
+{	init_apic_mappings();early_printk("	init_apic_mappings();\n");}
+{	io_apic_init_mappings();early_printk("	io_apic_init_mappings();\n");}
 
-	kvm_guest_init();
+{	kvm_guest_init();early_printk("	kvm_guest_init();\n");}
 
-	e820_reserve_resources();
+{	e820_reserve_resources();early_printk("	e820_reserve_resources();\n");}
 	e820_mark_nosave_regions(max_low_pfn);
 
-	x86_init.resources.reserve_resources();
+{	x86_init.resources.reserve_resources();early_printk("	x86_init.resources.reserve_resources();\n");}
 
-	e820_setup_gap();
+{	e820_setup_gap();early_printk("	e820_setup_gap();\n");}
 
 #ifdef CONFIG_VT
 #if defined(CONFIG_VGA_CONSOLE)
@@ -1239,22 +1246,22 @@ void __init setup_arch(char **cmdline_p)
 	conswitchp = &dummy_con;
 #endif
 #endif
-	x86_init.oem.banner();
+{	x86_init.oem.banner();early_printk("	x86_init.oem.banner();\n");}
 #ifdef CONFIG_VMMCP
 early_printk("HI HTERE!\n");
 #endif
 
-	x86_init.timers.wallclock_init();
+{	x86_init.timers.wallclock_init();early_printk("	x86_init.timers.wallclock_init();\n");}
 
-	mcheck_init();
+{	mcheck_init();early_printk("	mcheck_init();\n");}
 
-	arch_init_ideal_nops();
+{	arch_init_ideal_nops();early_printk("	arch_init_ideal_nops();\n");}
 
 	register_refined_jiffies(CLOCK_TICK_RATE);
 
 #ifdef CONFIG_EFI
 	if (efi_enabled(EFI_BOOT))
-		efi_apply_memmap_quirks();
+{		efi_apply_memmap_quirks();early_printk("		efi_apply_memmap_quirks();\n");}
 #endif
 }
 

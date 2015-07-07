@@ -1632,6 +1632,7 @@ void __init enable_IR_x2apic(void)
  */
 static int __init detect_init_APIC(void)
 {
+printk("cpu has apic %d\n", cpu_has_apic);
 	if (!cpu_has_apic) {
 		pr_info("No local APIC present\n");
 		return -1;
@@ -1751,18 +1752,22 @@ no_apic:
 void __init init_apic_mappings(void)
 {
 	unsigned int new_apicid;
+printk("init apic mappings\n"); early_printk("init apic mppaings\n");
 
 	if (x2apic_mode) {
+		printk("x2apic_mode?\n");
 		boot_cpu_physical_apicid = read_apic_id();
 		return;
 	}
-
+printk("WTF smp_found_config %d \n", smp_found_config);
 	/* If no local APIC can be found return early */
 	if (!smp_found_config && detect_init_APIC()) {
+printk("NOPIFY\n");
 		/* lets NOP'ify apic operations */
 		pr_info("APIC: disable apic facility\n");
 		apic_disable();
 	} else {
+printk("FUCK! NO NOPIFY\n");
 		apic_phys = mp_lapic_addr;
 
 		/*

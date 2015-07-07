@@ -555,7 +555,9 @@ asmlinkage __visible void __init start_kernel(void)
 	pidhash_init();
 	vfs_caches_init_early();
 	sort_main_extable();
+printk("call trap init\n");
 	trap_init();
+printk("call mm init\n");
 	mm_init();
 
 	/*
@@ -563,42 +565,46 @@ asmlinkage __visible void __init start_kernel(void)
 	 * timer interrupt). Full topology setup happens at smp_init()
 	 * time - but meanwhile we still have a functioning scheduler.
 	 */
+printk("call sched init\n");
 	sched_init();
 	/*
 	 * Disable preemption - early bootup scheduling is extremely
 	 * fragile until we cpu_idle() for the first time.
 	 */
+printk("preemtp disable\n");
 	preempt_disable();
 	if (WARN(!irqs_disabled(),
 		 "Interrupts were enabled *very* early, fixing it\n"))
 		local_irq_disable();
+printk("idr init cache\n");
 	idr_init_cache();
+printk("call rcu_init\n");
 	rcu_init();
 
 	/* trace_printk() and trace points may be used after this */
 	trace_init();
 
-	context_tracking_init();
-	radix_tree_init();
+	context_tracking_init(); printk("	context_tracking_init();\n");
+	radix_tree_init(); printk("	radix_tree_init();\n");
 	/* init some links before init_ISA_irqs() */
-	early_irq_init();
-	init_IRQ();
-	tick_init();
-	rcu_init_nohz();
-	init_timers();
-	hrtimers_init();
-	softirq_init();
-	timekeeping_init();
-	time_init();
-	sched_clock_postinit();
-	perf_event_init();
-	profile_init();
-	call_function_init();
+	early_irq_init(); printk("	early_irq_init();\n");
+	init_IRQ(); printk("	init_IRQ();\n");
+	tick_init(); printk("	tick_init();\n");
+	rcu_init_nohz(); printk("	rcu_init_nohz();\n");
+	init_timers(); printk("	init_timers();\n");
+	hrtimers_init(); printk("	hrtimers_init();\n");
+	softirq_init(); printk("	softirq_init();\n");
+	timekeeping_init(); printk("	timekeeping_init();\n");
+	time_init(); printk("	time_init();\n");
+	sched_clock_postinit(); printk("	sched_clock_postinit();\n");
+	perf_event_init(); printk("	perf_event_init();\n");
+	profile_init(); printk("	profile_init();\n");
+	call_function_init(); printk("	call_function_init();\n");
 	WARN(!irqs_disabled(), "Interrupts were enabled early\n");
 	early_boot_irqs_disabled = false;
-	local_irq_enable();
+	local_irq_enable(); printk("	local_irq_enable();\n");
 
-	kmem_cache_init_late();
+	kmem_cache_init_late(); printk("	kmem_cache_init_late();\n");
 
 	/*
 	 * HACK ALERT! This is early. We're enabling the console before
@@ -610,14 +616,14 @@ asmlinkage __visible void __init start_kernel(void)
 		panic("Too many boot %s vars at `%s'", panic_later,
 		      panic_param);
 
-	lockdep_info();
+	lockdep_info(); printk("	lockdep_info();\n");
 
 	/*
 	 * Need to run this when irqs are enabled, because it wants
 	 * to self-test [hard/soft]-irqs on/off lock inversion bugs
 	 * too:
 	 */
-	locking_selftest();
+	locking_selftest(); printk("	locking_selftest();\n");
 
 #ifdef CONFIG_BLK_DEV_INITRD
 	if (initrd_start && !initrd_below_start_ok &&
@@ -628,18 +634,18 @@ asmlinkage __visible void __init start_kernel(void)
 		initrd_start = 0;
 	}
 #endif
-	page_ext_init();
-	debug_objects_mem_init();
-	kmemleak_init();
-	setup_per_cpu_pageset();
-	numa_policy_init();
+	page_ext_init(); printk("	page_ext_init();\n");
+	debug_objects_mem_init(); printk("	debug_objects_mem_init();\n");
+	kmemleak_init(); printk("	kmemleak_init();\n");
+	setup_per_cpu_pageset(); printk("	setup_per_cpu_pageset();\n");
+	numa_policy_init(); printk("	numa_policy_init();\n");
 	if (late_time_init)
 		late_time_init();
-	sched_clock_init();
-	calibrate_delay();
-	pidmap_init();
-	anon_vma_init();
-	acpi_early_init();
+	sched_clock_init(); printk("	sched_clock_init();\n");
+	calibrate_delay(); printk("	calibrate_delay();\n");
+	pidmap_init(); printk("	pidmap_init();\n");
+	anon_vma_init(); printk("	anon_vma_init();\n");
+	acpi_early_init(); printk("	acpi_early_init();\n");
 #ifdef CONFIG_X86
 	if (efi_enabled(EFI_RUNTIME_SERVICES))
 		efi_enter_virtual_mode();
@@ -659,28 +665,28 @@ asmlinkage __visible void __init start_kernel(void)
 	vfs_caches_init();
 	signals_init();
 	/* rootfs populating might need page-writeback */
-	page_writeback_init();
-	proc_root_init();
-	nsfs_init();
-	cpuset_init();
-	cgroup_init();
-	taskstats_init_early();
-	delayacct_init();
+	page_writeback_init(); printk("	page_writeback_init();\n");
+	proc_root_init(); printk("	proc_root_init();\n");
+	nsfs_init(); printk("	nsfs_init();\n");
+	cpuset_init(); printk("	cpuset_init();\n");
+	cgroup_init(); printk("	cgroup_init();\n");
+	taskstats_init_early(); printk("	taskstats_init_early();\n");
+	delayacct_init(); printk("	delayacct_init();\n");
 
-	check_bugs();
+	check_bugs(); printk("	check_bugs();\n");
 
-	acpi_subsystem_init();
-	sfi_init_late();
+	acpi_subsystem_init(); printk("	acpi_subsystem_init();\n");
+	sfi_init_late(); printk("	sfi_init_late();\n");
 
 	if (efi_enabled(EFI_RUNTIME_SERVICES)) {
-		efi_late_init();
-		efi_free_boot_services();
+		efi_late_init(); printk("		efi_late_init();\n");
+		efi_free_boot_services(); printk("		efi_free_boot_services();\n");
 	}
 
-	ftrace_init();
+	ftrace_init(); printk("	ftrace_init();\n");
 
 	/* Do the rest non-__init'ed, we're now alive */
-	rest_init();
+	rest_init(); printk("	rest_init();\n");
 }
 
 /* Call all constructor functions linked into the kernel. */

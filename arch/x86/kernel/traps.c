@@ -833,34 +833,35 @@ void __init trap_init(void)
 	early_iounmap(p, 4);
 #endif
 
-	set_intr_gate(X86_TRAP_DE, divide_error);
-	set_intr_gate_ist(X86_TRAP_NMI, &nmi, NMI_STACK);
+	set_intr_gate(X86_TRAP_DE, divide_error);printk("	set_intr_gate(X86_TRAP_DE, divide_error);\n");
+	set_intr_gate_ist(X86_TRAP_NMI, &nmi, NMI_STACK);printk("	set_intr_gate_ist(X86_TRAP_NMI, &nmi, NMI_STACK);\n");
 	/* int4 can be called from all */
-	set_system_intr_gate(X86_TRAP_OF, &overflow);
-	set_intr_gate(X86_TRAP_BR, bounds);
-	set_intr_gate(X86_TRAP_UD, invalid_op);
-	set_intr_gate(X86_TRAP_NM, device_not_available);
+	set_system_intr_gate(X86_TRAP_OF, &overflow);printk("	set_system_intr_gate(X86_TRAP_OF, &overflow);\n");
+	set_intr_gate(X86_TRAP_BR, bounds);printk("	set_intr_gate(X86_TRAP_BR, bounds);\n");
+	set_intr_gate(X86_TRAP_UD, invalid_op);printk("	set_intr_gate(X86_TRAP_UD, invalid_op);\n");
+	set_intr_gate(X86_TRAP_NM, device_not_available);printk("	set_intr_gate(X86_TRAP_NM, device_not_available);\n");
 #ifdef CONFIG_X86_32
 	set_task_gate(X86_TRAP_DF, GDT_ENTRY_DOUBLEFAULT_TSS);
 #else
-	set_intr_gate_ist(X86_TRAP_DF, &double_fault, DOUBLEFAULT_STACK);
+	set_intr_gate_ist(X86_TRAP_DF, &double_fault, DOUBLEFAULT_STACK);printk("	set_intr_gate_ist(X86_TRAP_DF, &double_fault, DOUBLEFAULT_STACK);\n");
 #endif
-	set_intr_gate(X86_TRAP_OLD_MF, coprocessor_segment_overrun);
-	set_intr_gate(X86_TRAP_TS, invalid_TSS);
-	set_intr_gate(X86_TRAP_NP, segment_not_present);
-	set_intr_gate(X86_TRAP_SS, stack_segment);
-	set_intr_gate(X86_TRAP_GP, general_protection);
-	set_intr_gate(X86_TRAP_SPURIOUS, spurious_interrupt_bug);
-	set_intr_gate(X86_TRAP_MF, coprocessor_error);
-	set_intr_gate(X86_TRAP_AC, alignment_check);
+	set_intr_gate(X86_TRAP_OLD_MF, coprocessor_segment_overrun);printk("	set_intr_gate(X86_TRAP_OLD_MF, coprocessor_segment_overrun);\n");
+	set_intr_gate(X86_TRAP_TS, invalid_TSS);printk("	set_intr_gate(X86_TRAP_TS, invalid_TSS);\n");
+	set_intr_gate(X86_TRAP_NP, segment_not_present);printk("	set_intr_gate(X86_TRAP_NP, segment_not_present);\n");
+	set_intr_gate(X86_TRAP_SS, stack_segment);printk("	set_intr_gate(X86_TRAP_SS, stack_segment);\n");
+	set_intr_gate(X86_TRAP_GP, general_protection);printk("	set_intr_gate(X86_TRAP_GP, general_protection);\n");
+	set_intr_gate(X86_TRAP_SPURIOUS, spurious_interrupt_bug);printk("	set_intr_gate(X86_TRAP_SPURIOUS, spurious_interrupt_bug);\n");
+	set_intr_gate(X86_TRAP_MF, coprocessor_error);printk("	set_intr_gate(X86_TRAP_MF, coprocessor_error);\n");
+	set_intr_gate(X86_TRAP_AC, alignment_check);printk("	set_intr_gate(X86_TRAP_AC, alignment_check);\n");
 #ifdef CONFIG_X86_MCE
 	set_intr_gate_ist(X86_TRAP_MC, &machine_check, MCE_STACK);
 #endif
-	set_intr_gate(X86_TRAP_XF, simd_coprocessor_error);
+	set_intr_gate(X86_TRAP_XF, simd_coprocessor_error);printk("	set_intr_gate(X86_TRAP_XF, simd_coprocessor_error);\n");
 
 	/* Reserve all the builtin and the syscall vector: */
 	for (i = 0; i < FIRST_EXTERNAL_VECTOR; i++)
 		set_bit(i, used_vectors);
+printk("done for\n");
 
 #ifdef CONFIG_IA32_EMULATION
 	set_system_intr_gate(IA32_SYSCALL_VECTOR, entry_INT80_compat);
@@ -877,28 +878,30 @@ void __init trap_init(void)
 	 * "sidt" instruction will not leak the location of the kernel, and
 	 * to defend the IDT against arbitrary memory write vulnerabilities.
 	 * It will be reloaded in cpu_init() */
-	__set_fixmap(FIX_RO_IDT, __pa_symbol(idt_table), PAGE_KERNEL_RO);
-	idt_descr.address = fix_to_virt(FIX_RO_IDT);
+printk("SET IDT\n");
+printk("__set_fixmap(0x%lx, 0x%x, 0x%lx);\n", FIX_RO_IDT, __pa_symbol(idt_table), PAGE_KERNEL_RO);
+	__set_fixmap(FIX_RO_IDT, __pa_symbol(idt_table), PAGE_KERNEL_RO);printk("	__set_fixmap(FIX_RO_IDT, __pa_symbol(idt_table), PAGE_KERNEL_RO);\n");
+	idt_descr.address = fix_to_virt(FIX_RO_IDT);printk("	idt_descr.address = fix_to_virt(FIX_RO_IDT);\n");
 
 	/*
 	 * Should be a barrier for any external CPU state:
 	 */
-	cpu_init();
+	cpu_init();printk("	cpu_init();\n");
 
 	/*
 	 * X86_TRAP_DB and X86_TRAP_BP have been set
 	 * in early_trap_init(). However, ITS works only after
 	 * cpu_init() loads TSS. See comments in early_trap_init().
 	 */
-	set_intr_gate_ist(X86_TRAP_DB, &debug, DEBUG_STACK);
+	set_intr_gate_ist(X86_TRAP_DB, &debug, DEBUG_STACK);printk("	set_intr_gate_ist(X86_TRAP_DB, &debug, DEBUG_STACK);\n");
 	/* int3 can be called from all */
-	set_system_intr_gate_ist(X86_TRAP_BP, &int3, DEBUG_STACK);
+	set_system_intr_gate_ist(X86_TRAP_BP, &int3, DEBUG_STACK);printk("	set_system_intr_gate_ist(X86_TRAP_BP, &int3, DEBUG_STACK);\n");
 
-	x86_init.irqs.trap_init();
+	x86_init.irqs.trap_init();printk("	x86_init.irqs.trap_init();\n");
 
 #ifdef CONFIG_X86_64
-	memcpy(&debug_idt_table, &idt_table, IDT_ENTRIES * 16);
-	set_nmi_gate(X86_TRAP_DB, &debug);
-	set_nmi_gate(X86_TRAP_BP, &int3);
+	memcpy(&debug_idt_table, &idt_table, IDT_ENTRIES * 16);printk("	memcpy(&debug_idt_table, &idt_table, IDT_ENTRIES * 16);\n");
+	set_nmi_gate(X86_TRAP_DB, &debug);printk("	set_nmi_gate(X86_TRAP_DB, &debug);\n");
+	set_nmi_gate(X86_TRAP_BP, &int3);printk("	set_nmi_gate(X86_TRAP_BP, &int3);\n");
 #endif
 }
