@@ -105,6 +105,9 @@ static int pit_shutdown(struct clock_event_device *evt)
 	if (!clockevent_state_oneshot(evt) && !clockevent_state_periodic(evt))
 		return 0;
 
+#ifdef CONFIG_VMMCP
+	return;
+#endif
 	raw_spin_lock(&i8253_lock);
 
 	outb_p(0x30, PIT_MODE);
