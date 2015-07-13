@@ -1135,6 +1135,12 @@ static __init int pt_init(void)
 {
 	int ret, cpu, prior_warn = 0;
 
+#ifdef CONFIG_VMMCP
+	x86_add_exclusive(x86_lbr_exclusive_pt);
+	pr_warn("VMMCP, doing nothing\n");
+
+	return -EBUSY;
+#endif
 	BUILD_BUG_ON(sizeof(struct topa) > PAGE_SIZE);
 
 	if (!test_cpu_cap(&boot_cpu_data, X86_FEATURE_INTEL_PT))

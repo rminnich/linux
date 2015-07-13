@@ -387,19 +387,19 @@ static noinline void __init_refok rest_init(void)
 {
 	int pid;
 
-	rcu_scheduler_starting();
-	smpboot_thread_init();
+	rcu_scheduler_starting(); printk("	rcu_scheduler_starting();\n");
+	smpboot_thread_init(); printk("	smpboot_thread_init();\n");
 	/*
 	 * We need to spawn init first so that it obtains pid 1, however
 	 * the init task will end up wanting to create kthreads, which, if
 	 * we schedule it before we create kthreadd, will OOPS.
 	 */
 	kernel_thread(kernel_init, NULL, CLONE_FS);
-	numa_default_policy();
+	numa_default_policy(); printk("	numa_default_policy();\n");
 	pid = kernel_thread(kthreadd, NULL, CLONE_FS | CLONE_FILES);
-	rcu_read_lock();
+	rcu_read_lock(); printk("	rcu_read_lock();\n");
 	kthreadd_task = find_task_by_pid_ns(pid, &init_pid_ns);
-	rcu_read_unlock();
+	rcu_read_unlock(); printk("	rcu_read_unlock();\n");
 	complete(&kthreadd_done);
 
 	/*
@@ -407,7 +407,7 @@ static noinline void __init_refok rest_init(void)
 	 * at least once to get things moving:
 	 */
 	init_idle_bootup_task(current);
-	schedule_preempt_disabled();
+	schedule_preempt_disabled(); printk("	schedule_preempt_disabled();\n");
 	/* Call into cpu_idle with preempt disabled */
 	cpu_startup_entry(CPUHP_ONLINE);
 }

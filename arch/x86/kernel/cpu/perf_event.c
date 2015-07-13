@@ -1690,6 +1690,9 @@ static int __init init_hw_perf_events(void)
 	default:
 		err = -ENOTSUPP;
 	}
+#ifdef CONFIG_VMMCP
+	err = -ENOTSUPP;
+#endif
 	if (err != 0) {
 		pr_cont("no PMU driver, software events only.\n");
 		return 0;
