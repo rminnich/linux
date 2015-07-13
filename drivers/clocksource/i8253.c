@@ -108,6 +108,9 @@ int __init clocksource_i8253_init(void)
 static void init_pit_timer(enum clock_event_mode mode,
 			   struct clock_event_device *evt)
 {
+#ifdef CONFIG_VMMCP
+	return;
+#endif
 	raw_spin_lock(&i8253_lock);
 
 	switch (mode) {
