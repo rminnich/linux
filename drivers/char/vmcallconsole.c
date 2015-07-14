@@ -73,12 +73,13 @@ static struct console vmcall_cons = {
 
 static int vmcc_register(void)
 {
+	printk("--------------------------> vmcc_register\n");
 	if (register_chrdev (LP_MAJOR, "vmcc", &vmcc_fops)) {
-		printk (KERN_ERR "lp: unable to get major %d\n", LP_MAJOR);
+		printk (KERN_ERR ">>>>>>>>>>>>>>>>>>>>>>>>>>>vmcc: unable to get major %d\n", LP_MAJOR);
 		return -EIO;
 	}
 	register_console(&vmcall_cons);
-	printk("Registered the vmcall console\n");
+	printk("->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Registered the vmcall console\n");
 	return 0;
 }
 
