@@ -1998,6 +1998,7 @@ static int virtcons_probe(struct virtio_device *vdev)
 	bool multiport;
 	bool early = early_put_chars != NULL;
 
+printk("virtcons_probe\n");
 	/* We only need a config space if features are offered */
 	if (!vdev->config->get &&
 	    (virtio_has_feature(vdev, VIRTIO_CONSOLE_F_SIZE)
@@ -2268,7 +2269,7 @@ static struct virtio_driver virtio_rproc_serial = {
 static int __init init(void)
 {
 	int err;
-
+printk("virtio console init\n");
 	pdrvdata.class = class_create(THIS_MODULE, "virtio-ports");
 	if (IS_ERR(pdrvdata.class)) {
 		err = PTR_ERR(pdrvdata.class);

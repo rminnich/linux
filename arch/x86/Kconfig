@@ -158,6 +158,9 @@ config X86
 
 config VMMCP
 	bool "VMMCP"
+	select OF
+	select OF_EARLY_FLATTREE
+	select VIRTIO
 	default n
 	help
 		"Set true if you need an Akaros VMMCP kernel"
