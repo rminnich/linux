@@ -358,6 +358,7 @@ static void vm_del_vqs(struct virtio_device *vdev)
 
 
 
+#if 0
 static struct virtqueue *vm_setup_vq(struct virtio_device *vdev, unsigned index,
 				  void (*callback)(struct virtqueue *vq),
 				  const char *name)
