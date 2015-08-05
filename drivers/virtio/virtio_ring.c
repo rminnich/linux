@@ -469,6 +469,7 @@ static inline bool more_used(const struct vring_virtqueue *vq)
  */
 void *virtqueue_get_buf(struct virtqueue *_vq, unsigned int *len)
 {
+printk("%s\n", __func__);
 	struct vring_virtqueue *vq = to_vvq(_vq);
 	void *ret;
 	unsigned int i;
@@ -493,7 +494,7 @@ void *virtqueue_get_buf(struct virtqueue *_vq, unsigned int *len)
 	last_used = (vq->last_used_idx & (vq->vring.num - 1));
 	i = virtio32_to_cpu(_vq->vdev, vq->vring.used->ring[last_used].id);
 	*len = virtio32_to_cpu(_vq->vdev, vq->vring.used->ring[last_used].len);
-
+printk("50\n");
 	if (unlikely(i >= vq->vring.num)) {
 		BAD_RING(vq, "id %u out of range\n", i);
 		return NULL;
@@ -505,7 +506,9 @@ void *virtqueue_get_buf(struct virtqueue *_vq, unsigned int *len)
 
 	/* detach_buf clears data, so grab it now. */
 	ret = vq->data[i];
+printk("detach buf\n");
 	detach_buf(vq, i);
+printk("detach buf done\n");
 	vq->last_used_idx++;
 	/* If we expect an interrupt for the next entry, tell host
 	 * by writing event index and flush out the write before
