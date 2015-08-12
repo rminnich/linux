@@ -43,6 +43,8 @@
 
 #define is_rproc_enabled IS_ENABLED(CONFIG_REMOTEPROC)
 
+void v(char *s);
+void put64(uint64_t x);
 /*
  * This is a global struct for storing common data for all the devices
  * this driver handles.
@@ -620,13 +622,21 @@ static ssize_t __send_to_port(struct port *port, struct scatterlist *sg,
 	int err;
 	unsigned long flags;
 	unsigned int len;
-
+	char c[2];
+	int i;
+	v("virtq _-send_to_port:");
+	for(i = 0; i < in_count; i++) {
+		c[0] = ((char *)data)[i];
+		c[1] = 0;
+		v(c);
+	}
 	out_vq = port->out_vq;
 
 	spin_lock_irqsave(&port->outvq_lock, flags);
 
 	reclaim_consumed_buffers(port);
 
+v("kick "); put64((uint64_t) out_vq); v("\n "); 
 	err = virtqueue_add_outbuf(out_vq, sg, nents, data, GFP_ATOMIC);
 
 	/* Tell Host to go! */
@@ -1485,7 +1495,9 @@ static int add_port(struct ports_device *portdev, u32 id)
 	 * configuration parameters for this port (eg, port name,
 	 * caching, whether this is a console port, etc.)
 	 */
+v("TAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALK TO ME\n");
 	send_control_msg(port, VIRTIO_CONSOLE_PORT_READY, 1);
+v("DONE TAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALK TO ME\n");
 
 	if (pdrvdata.debugfs_dir) {
 		/*
@@ -1773,6 +1785,7 @@ static void control_work_handler(struct work_struct *work)
 static void out_intr(struct virtqueue *vq)
 {
 	struct port *port;
+v("OUT INTER!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 
 	port = find_port_by_vq(vq->vdev->priv, vq);
 	if (!port)
@@ -1785,7 +1798,7 @@ static void in_intr(struct virtqueue *vq)
 {
 	struct port *port;
 	unsigned long flags;
-
+v("IN INTR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 	port = find_port_by_vq(vq->vdev->priv, vq);
 	if (!port)
 		return;
@@ -1998,15 +2011,17 @@ static int virtcons_probe(struct virtio_device *vdev)
 	bool multiport;
 	bool early = early_put_chars != NULL;
 
-printk("virtcons_probe\n");
+v("((((((((((((((((((((((((((((((((9virtcons_probe\n");
 	/* We only need a config space if features are offered */
 	if (!vdev->config->get &&
 	    (virtio_has_feature(vdev, VIRTIO_CONSOLE_F_SIZE)
 	     || virtio_has_feature(vdev, VIRTIO_CONSOLE_F_MULTIPORT))) {
+		v("(((((((((((((((((((((((((((((((((((((( onfig access disable\n");
 		dev_err(&vdev->dev, "%s failure: config access disabled\n",
 			__func__);
 		return -EINVAL;
 	}
+	v("((((((((((((((((((((((((((((((((((((((((((((9 no features but keep going\n");
 
 	/* Ensure to read early_put_chars now */
 	barrier();
@@ -2020,7 +2035,7 @@ printk("virtcons_probe\n");
 	/* Attach this portdev to this virtio_device, and vice-versa. */
 	portdev->vdev = vdev;
 	vdev->priv = portdev;
-
+	v("(((((((((((((((((((((((((((((((((((((((((((((( register chrdev\n");
 	portdev->chr_major = register_chrdev(0, "virtio-portsdev",
 					     &portdev_fops);
 	if (portdev->chr_major < 0) {
@@ -2030,7 +2045,7 @@ printk("virtcons_probe\n");
 		err = portdev->chr_major;
 		goto free;
 	}
-
+	v("(((((((((((((((((((((((((((((((((((((( now try to check multiport\n");
 	multiport = false;
 	portdev->config.max_nr_ports = 1;
 
@@ -2041,20 +2056,23 @@ printk("virtcons_probe\n");
 				 &portdev->config.max_nr_ports) == 0) {
 		multiport = true;
 	}
-
+	v("(((((((((((((((((((((((((((((( now call init_vqs\n");
 	err = init_vqs(portdev);
 	if (err < 0) {
 		dev_err(&vdev->dev, "Error %d initializing vqs\n", err);
 		goto free_chrdev;
 	}
 
+	v("(((((((((((((((((((((((((((((((((((((( init vqs worked\n");
 	spin_lock_init(&portdev->ports_lock);
 	INIT_LIST_HEAD(&portdev->ports);
 
 	virtio_device_ready(portdev->vdev);
 
+	v("(((((((((((((((((((((((((((((((((((((( rady\n");
 	INIT_WORK(&portdev->config_work, &config_work_handler);
 	INIT_WORK(&portdev->control_work, &control_work_handler);
+	v("(((((((((((((((((((((((((((((((((((((( wdone workady\n");
 
 	if (multiport) {
 		unsigned int nr_added_bufs;
@@ -2075,13 +2093,18 @@ printk("virtcons_probe\n");
 		 * For backward compatibility: Create a console port
 		 * if we're running on older host.
 		 */
+		v("ADD PORT STSR\n");
 		add_port(portdev, 0);
+		v("ADD PORT DONE\n");
 	}
 
+v("--------------------------------------> \n");
 	spin_lock_irq(&pdrvdata_lock);
 	list_add_tail(&portdev->list, &pdrvdata.portdevs);
 	spin_unlock_irq(&pdrvdata_lock);
+v("++++++++++++++++++++++++++++++++++++++> \n");
 
+	v("(((((((((((((((((((((((((((((((((((((( send control messags\n");
 	__send_control_msg(portdev, VIRTIO_CONSOLE_BAD_ID,
 			   VIRTIO_CONSOLE_DEVICE_READY, 1);
 
@@ -2094,9 +2117,11 @@ printk("virtcons_probe\n");
 	 * this might take some host<->guest communication - thus we have to
 	 * wait.
 	 */
+	v("(((((((((((((((((((((((((((((((((((((( wait completeion\n");
 	if (multiport && early)
 		wait_for_completion(&early_console_added);
 
+	v("(((((((((((((((((((((((((((((((((((((( probe done OKOKOKOKO\n");
 	return 0;
 
 free_vqs:
@@ -2269,7 +2294,7 @@ static struct virtio_driver virtio_rproc_serial = {
 static int __init init(void)
 {
 	int err;
-printk("virtio console init\n");
+v("virtio console init\n");
 	pdrvdata.class = class_create(THIS_MODULE, "virtio-ports");
 	if (IS_ERR(pdrvdata.class)) {
 		err = PTR_ERR(pdrvdata.class);

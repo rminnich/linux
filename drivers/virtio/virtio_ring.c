@@ -134,7 +134,8 @@ static inline int virtqueue_add(struct virtqueue *_vq,
 	unsigned int i, n, avail, descs_used, uninitialized_var(prev);
 	int head;
 	bool indirect;
-
+void v(char *s);
+v("=============================== . virtqueeu_add\n");
 	START_USE(vq);
 
 	BUG_ON(data == NULL);
@@ -469,7 +470,7 @@ static inline bool more_used(const struct vring_virtqueue *vq)
  */
 void *virtqueue_get_buf(struct virtqueue *_vq, unsigned int *len)
 {
-printk("%s\n", __func__);
+void v(char *s);
 	struct vring_virtqueue *vq = to_vvq(_vq);
 	void *ret;
 	unsigned int i;
@@ -488,13 +489,14 @@ printk("%s\n", __func__);
 		return NULL;
 	}
 
+v("vq get buf\n");
 	/* Only get used array entries after they have been exposed by host. */
 	virtio_rmb(vq->weak_barriers);
 
 	last_used = (vq->last_used_idx & (vq->vring.num - 1));
 	i = virtio32_to_cpu(_vq->vdev, vq->vring.used->ring[last_used].id);
 	*len = virtio32_to_cpu(_vq->vdev, vq->vring.used->ring[last_used].len);
-printk("50\n");
+v("50\n");
 	if (unlikely(i >= vq->vring.num)) {
 		BAD_RING(vq, "id %u out of range\n", i);
 		return NULL;
@@ -506,9 +508,9 @@ printk("50\n");
 
 	/* detach_buf clears data, so grab it now. */
 	ret = vq->data[i];
-printk("detach buf\n");
+v("detach buf\n");
 	detach_buf(vq, i);
-printk("detach buf done\n");
+v("detach buf done\n");
 	vq->last_used_idx++;
 	/* If we expect an interrupt for the next entry, tell host
 	 * by writing event index and flush out the write before

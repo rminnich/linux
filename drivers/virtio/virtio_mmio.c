@@ -422,6 +422,7 @@ static struct virtqueue *vm_setup_vq(struct virtio_device *vdev, unsigned index,
 	/* Create the vring */
 	vq = vring_new_virtqueue(index, info->num, VIRTIO_MMIO_VRING_ALIGN, vdev,
 				 true, info->queue, vm_notify, callback, name);
+printk("vq after new virtq is %p\n", vq);
 	if (!vq) {
 		err = -ENOMEM;
 		goto error_new_virtqueue;
@@ -430,6 +431,7 @@ static struct virtqueue *vm_setup_vq(struct virtio_device *vdev, unsigned index,
 	/* Activate the queue */
 	writel(info->num, vm_dev->base + VIRTIO_MMIO_QUEUE_NUM);
 	if (vm_dev->version == 1) {
+printk("V1 ALL IS WELL\n");
 		writel(PAGE_SIZE, vm_dev->base + VIRTIO_MMIO_QUEUE_ALIGN);
 		writel(virt_to_phys(info->queue) >> PAGE_SHIFT,
 				vm_dev->base + VIRTIO_MMIO_QUEUE_PFN);
@@ -464,6 +466,8 @@ static struct virtqueue *vm_setup_vq(struct virtio_device *vdev, unsigned index,
 	return vq;
 
 error_new_virtqueue:
+printk("Error new virtquueue FFFFFFFFFFFFFFFFFFFFFFFFFUUUUUUUUUUUUUUUUUUUUUUUUUU\n");
+
 	if (vm_dev->version == 1) {
 		writel(0, vm_dev->base + VIRTIO_MMIO_QUEUE_PFN);
 	} else {
@@ -487,10 +491,12 @@ static int vm_find_vqs(struct virtio_device *vdev, unsigned nvqs,
 	unsigned int irq = platform_get_irq(vm_dev->pdev, 0);
 	int i, err;
 
-	err = request_irq(irq, vm_interrupt, IRQF_SHARED,
-			dev_name(&vdev->dev), vm_dev);
-	if (err)
-		return err;
+	if (irq) {
+		err = request_irq(irq, vm_interrupt, IRQF_SHARED,
+				dev_name(&vdev->dev), vm_dev);
+		if (err)
+			return err;
+	}
 
 	for (i = 0; i < nvqs; ++i) {
 		vqs[i] = vm_setup_vq(vdev, i, callbacks[i], names[i]);
