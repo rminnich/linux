@@ -212,6 +212,7 @@ static int virtio_dev_probe(struct device *_d)
 		for (i = 0; i < drv->feature_table_size_legacy; i++) {
 			unsigned int f = drv->feature_table_legacy[i];
 			BUG_ON(f >= 64);
+printk("HAS FEATURE S 0x%x\n", f);
 			driver_features_legacy |= (1ULL << f);
 		}
 	} else {
