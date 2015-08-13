@@ -123,7 +123,7 @@ static u64 vm_get_features(struct virtio_device *vdev)
 
 	writel(0, vm_dev->base + VIRTIO_MMIO_DEVICE_FEATURES_SEL);
 	features |= readl(vm_dev->base + VIRTIO_MMIO_DEVICE_FEATURES);
-printk("FEATURES: 0x%llx\n", features);
+
 	return features;
 }
 
@@ -132,13 +132,11 @@ static int vm_finalize_features(struct virtio_device *vdev)
 	struct virtio_mmio_device *vm_dev = to_virtio_mmio_device(vdev);
 
 	/* Give virtio_ring a chance to accept features. */
-printk("finalize: before transprort: %llx\n", vdev->features);
 	vring_transport_features(vdev);
-printk("finalize: after transprort: %llx\n", vdev->features);
+
 	/* Make sure there is are no mixed devices */
 	if (vm_dev->version == 2 &&
 			!__virtio_test_bit(vdev, VIRTIO_F_VERSION_1)) {
-		printk("FUCK: featuers is 0x%llx\n", vdev->features);
 		dev_err(&vdev->dev, "New virtio-mmio devices (version 2) must provide VIRTIO_F_VERSION_1 feature!\n");
 		return -EINVAL;
 	}

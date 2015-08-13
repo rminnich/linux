@@ -777,24 +777,20 @@ EXPORT_SYMBOL_GPL(vring_del_virtqueue);
 void vring_transport_features(struct virtio_device *vdev)
 {
 	unsigned int i;
-printk("vea 0x%llx\n", vdev->features);
+
 	for (i = VIRTIO_TRANSPORT_F_START; i < VIRTIO_TRANSPORT_F_END; i++) {
-printk("FUCK TEST I %d\n", i);
 		switch (i) {
 		case VIRTIO_RING_F_INDIRECT_DESC:
 			break;
 		case VIRTIO_RING_F_EVENT_IDX:
 			break;
 		case VIRTIO_F_VERSION_1:
-printk("VER 1\n");
 			break;
 		default:
-printk("CLEAR FUCKING BIT %d\n", i);
 			/* We don't understand this bit. */
 			__virtio_clear_bit(vdev, i);
 		}
 	}
-printk("vea 0x%llx\n", vdev->features);
 }
 EXPORT_SYMBOL_GPL(vring_transport_features);
 
