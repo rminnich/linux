@@ -373,7 +373,7 @@ CONFIG_ARCH_ENABLE_MEMORY_HOTPLUG=y
 #
 # Executable file formats / Emulations
 #
-# CONFIG_BINFMT_ELF is not set
+CONFIG_BINFMT_ELF=y
 # CONFIG_BINFMT_SCRIPT is not set
 # CONFIG_HAVE_AOUT is not set
 # CONFIG_BINFMT_MISC is not set
