@@ -910,6 +910,7 @@ void __init load_default_modules(void)
 static int run_init_process(const char *init_filename)
 {
 	argv_init[0] = init_filename;
+printk("run init proc with %s\n", argv_init[0]);
 	return do_execve(getname_kernel(init_filename),
 		(const char __user *const __user *)argv_init,
 		(const char __user *const __user *)envp_init);
@@ -946,7 +947,9 @@ static int __ref kernel_init(void *unused)
 	flush_delayed_fput();
 
 	if (ramdisk_execute_command) {
+printk("run init proc?\n");
 		ret = run_init_process(ramdisk_execute_command);
+printk("Try to run %s, get %d\n", ramdisk_execute_command, ret);
 		if (!ret)
 			return 0;
 		pr_err("Failed to execute %s (error %d)\n",
@@ -1021,9 +1024,11 @@ static noinline void __init kernel_init_freeable(void)
 	if (!ramdisk_execute_command)
 		ramdisk_execute_command = "/init";
 
+	printk("sys access for %s is %d\n", ramdisk_execute_command, sys_access((const char __user *) ramdisk_execute_command, 0));
 	if (sys_access((const char __user *) ramdisk_execute_command, 0) != 0) {
 		ramdisk_execute_command = NULL;
 		prepare_namespace();
+printk("namespace prepared\n");
 	}
 
 	/*
@@ -1037,4 +1042,5 @@ static noinline void __init kernel_init_freeable(void)
 
 	integrity_load_keys();
 	load_default_modules();
+printk("all done ? \n");
 }

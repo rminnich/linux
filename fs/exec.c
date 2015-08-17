@@ -1462,6 +1462,7 @@ static int exec_binprm(struct linux_binprm *bprm)
 	rcu_read_unlock();
 
 	ret = search_binary_handler(bprm);
+printk("search bin %d\n", ret);
 	if (ret >= 0) {
 		audit_bprm(bprm);
 		trace_sched_process_exec(current, old_pid, bprm);
@@ -1523,10 +1524,12 @@ static int do_execveat_common(int fd, struct filename *filename,
 
 	file = do_open_execat(fd, filename, flags);
 	retval = PTR_ERR(file);
+printk("open execat is %d\n", retval);
 	if (IS_ERR(file))
 		goto out_unmark;
 
 	sched_exec();
+printk("after shced exec\n"); 
 
 	bprm->file = file;
 	if (fd == AT_FDCWD || filename->name[0] == '/') {
@@ -1553,6 +1556,7 @@ static int do_execveat_common(int fd, struct filename *filename,
 	bprm->interp = bprm->filename;
 
 	retval = bprm_mm_init(bprm);
+printk("ret %d\n", retval);
 	if (retval)
 		goto out_unmark;
 
@@ -1563,12 +1567,14 @@ static int do_execveat_common(int fd, struct filename *filename,
 	bprm->envc = count(envp, MAX_ARG_STRINGS);
 	if ((retval = bprm->envc) < 0)
 		goto out;
-
+printk("prepare .\n");
 	retval = prepare_binprm(bprm);
+printk("ret %d\n", retval);
 	if (retval < 0)
 		goto out;
 
 	retval = copy_strings_kernel(1, &bprm->filename, bprm);
+printk("ret %d\n", retval);
 	if (retval < 0)
 		goto out;
 
@@ -1581,7 +1587,9 @@ static int do_execveat_common(int fd, struct filename *filename,
 	if (retval < 0)
 		goto out;
 
+printk("do it\n");
 	retval = exec_binprm(bprm);
+printk("retval %d\n", retval);
 	if (retval < 0)
 		goto out;
 
