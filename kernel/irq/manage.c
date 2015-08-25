@@ -200,7 +200,8 @@ int irq_do_set_affinity(struct irq_data *data, const struct cpumask *mask,
 
 	return ret;
 }
-
+#undef EINVAL
+#define EINVAL __LINE__
 int irq_set_affinity_locked(struct irq_data *data, const struct cpumask *mask,
 			    bool force)
 {
@@ -1110,7 +1111,7 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
 
 	if (!desc)
 		return -EINVAL;
-
+printk("no irq chip %p desc %p\n", &no_irq_chip, desc->irq_data.chip );
 	if (desc->irq_data.chip == &no_irq_chip)
 		return -ENOSYS;
 	if (!try_module_get(desc->owner))
@@ -1123,6 +1124,7 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
 	 * thread.
 	 */
 	nested = irq_settings_is_nested_thread(desc);
+printk("nestd %d\n", nested);
 	if (nested) {
 		if (!new->thread_fn) {
 			ret = -EINVAL;
@@ -1141,7 +1143,7 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
 				goto out_mput;
 		}
 	}
-
+printk(";alksj\n");
 	/*
 	 * Create a handler thread when a thread function is supplied
 	 * and the interrupt does not nest into another interrupt
@@ -1608,7 +1610,7 @@ int request_threaded_irq(unsigned int irq, irq_handler_t handler,
 	struct irqaction *action;
 	struct irq_desc *desc;
 	int retval;
-
+printk("FUCK %s\n", __func__);
 	/*
 	 * Sanity-check: shared interrupts must pass in a real dev-ID,
 	 * otherwise we'll have trouble later trying to figure out
@@ -1622,14 +1624,17 @@ int request_threaded_irq(unsigned int irq, irq_handler_t handler,
 	    (!(irqflags & IRQF_SHARED) && (irqflags & IRQF_COND_SUSPEND)) ||
 	    ((irqflags & IRQF_NO_SUSPEND) && (irqflags & IRQF_COND_SUSPEND)))
 		return -EINVAL;
+printk("FUCK %s\n", __func__);
 
 	desc = irq_to_desc(irq);
+printk("des %p\n", desc);
 	if (!desc)
 		return -EINVAL;
 
 	if (!irq_settings_can_request(desc) ||
 	    WARN_ON(irq_settings_is_per_cpu_devid(desc)))
 		return -EINVAL;
+printk("F3\n");
 
 	if (!handler) {
 		if (!thread_fn)
@@ -1637,6 +1642,7 @@ int request_threaded_irq(unsigned int irq, irq_handler_t handler,
 		handler = irq_default_primary_handler;
 	}
 
+printk("F4\n");
 	action = kzalloc(sizeof(struct irqaction), GFP_KERNEL);
 	if (!action)
 		return -ENOMEM;
@@ -1648,6 +1654,7 @@ int request_threaded_irq(unsigned int irq, irq_handler_t handler,
 	action->dev_id = dev_id;
 
 	chip_bus_lock(desc);
+printk("F5\n");
 	retval = __setup_irq(irq, desc, action);
 	chip_bus_sync_unlock(desc);
 

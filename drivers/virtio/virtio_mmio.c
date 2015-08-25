@@ -489,6 +489,8 @@ static int vm_find_vqs(struct virtio_device *vdev, unsigned nvqs,
 	int i, err;
 	printk("platofrm.get.irq is %d\n", irq);
 
+printk("rq %d %p %x %s %p\n", irq, vm_interrupt, IRQF_SHARED,
+				dev_name(&vdev->dev), vm_dev);
 		err = request_irq(irq, vm_interrupt, IRQF_SHARED,
 				dev_name(&vdev->dev), vm_dev);
 		if (err) {

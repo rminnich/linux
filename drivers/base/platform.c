@@ -68,10 +68,12 @@ struct resource *platform_get_resource(struct platform_device *dev,
 				       unsigned int type, unsigned int num)
 {
 	int i;
-
+printk("%s \n", __func__);
 	for (i = 0; i < dev->num_resources; i++) {
 		struct resource *r = &dev->resource[i];
+printk("%s  %d\n", __func__, i);
 
+printk("%s type %x ptype %x num %d\n", __func__, type, resource_type(r), num);
 		if (type == resource_type(r) && num-- == 0)
 			return r;
 	}
@@ -93,6 +95,7 @@ int platform_get_irq(struct platform_device *dev, unsigned int num)
 	return dev->archdata.irqs[num];
 #else
 	struct resource *r;
+printk("FUCK %d\n", num);
 	if (IS_ENABLED(CONFIG_OF_IRQ) && dev->dev.of_node) {
 		int ret;
 
@@ -100,14 +103,15 @@ int platform_get_irq(struct platform_device *dev, unsigned int num)
 		if (ret >= 0 || ret == -EPROBE_DEFER)
 			return ret;
 	}
-
 	r = platform_get_resource(dev, IORESOURCE_IRQ, num);
+printk("FUCK %p\n", r);
 	/*
 	 * The resources may pass trigger flags to the irqs that need
 	 * to be set up. It so happens that the trigger flags for
 	 * IORESOURCE_BITS correspond 1-to-1 to the IRQF_TRIGGER*
 	 * settings.
 	 */
+printk("IOR BIT %x r->flags %x\n", IORESOURCE_BITS, r->flags);
 	if (r && r->flags & IORESOURCE_BITS)
 		irqd_set_trigger_type(irq_get_irq_data(r->start),
 				      r->flags & IORESOURCE_BITS);

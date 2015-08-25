@@ -1776,7 +1776,7 @@ printk("init apic mappings\n"); early_printk("init apic mppaings\n");
 printk("WTF smp_found_config %d \n", smp_found_config);
 	/* If no local APIC can be found return early */
 	if (!smp_found_config && detect_init_APIC()) {
-printk("NOPIFY\n");
+printk("NOPIFY NO APIC FOUND\n");
 		/* lets NOP'ify apic operations */
 		pr_info("APIC: disable apic facility\n");
 		apic_disable();
