@@ -54,11 +54,13 @@ struct vmmcp_data vmmcp_data = {
  */
 static void disable_vmmcp_irq(struct irq_data *data)
 {
+	printk("%s: MIRACLE\n", __func__);
 	set_bit(data->irq, vmmcp_data.blocked_interrupts);
 }
 
 static void enable_vmmcp_irq(struct irq_data *data)
 {
+	printk("%s: MIRACLE\n", __func__);
 	clear_bit(data->irq, vmmcp_data.blocked_interrupts);
 }
 
@@ -139,36 +141,43 @@ int vmmcp_setup_irq(unsigned int irq)
 
 static void lguest_apic_write(u32 reg, u32 v)
 {
+	printk("%s: MIRACLE\n", __func__);
 }
 
 static u32 lguest_apic_read(u32 reg)
 {
+	printk("%s: MIRACLE\n", __func__);
 	return 0;
 }
 
 static u64 lguest_apic_icr_read(void)
 {
+	printk("%s: MIRACLE\n", __func__);
 	return 0;
 }
 
 static void lguest_apic_icr_write(u32 low, u32 id)
 {
+	printk("%s: MIRACLE\n", __func__);
 	/* Warn to see if there's any stray references */
 	WARN_ON(1);
 }
 
 static void lguest_apic_wait_icr_idle(void)
 {
+	printk("%s: MIRACLE\n", __func__);
 	return;
 }
 
 static u32 lguest_apic_safe_wait_icr_idle(void)
 {
+	printk("%s: MIRACLE\n", __func__);
 	return 0;
 }
 
 static void set_lguest_basic_apic_ops(void)
 {
+	printk("%s: MIRACLE\n", __func__);
 	apic->read = lguest_apic_read;
 	apic->write = lguest_apic_write;
 	apic->icr_read = lguest_apic_icr_read;
@@ -193,9 +202,9 @@ static void __init vmmcp_platform_setup(void)
 {
 	printk("vmmcp platform setup ...\n");
 	x86_platform.calibrate_tsc = vmmcp_get_tsc_khz;
-	//vmmcp_init_IRQ();
+	vmmcp_init_IRQ();
 	/* APIC read/write intercepts */
-	//set_lguest_basic_apic_ops();
+	set_lguest_basic_apic_ops();
 	printk(" DONE vmmcp platform setup ...\n");
 }
 
@@ -216,7 +225,7 @@ static void vmmcp_set_cpu_features(struct cpuinfo_x86 *c)
 /* Checks if hypervisor supports x2apic without VT-D interrupt remapping. */
 static bool __init vmmcp_legacy_x2apic_available(void)
 {
-	return true;
+	return false;
 }
 
 const __refconst struct hypervisor_x86 x86_hyper_vmmcp = {
