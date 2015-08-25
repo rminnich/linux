@@ -487,13 +487,14 @@ static int vm_find_vqs(struct virtio_device *vdev, unsigned nvqs,
 	struct virtio_mmio_device *vm_dev = to_virtio_mmio_device(vdev);
 	unsigned int irq = platform_get_irq(vm_dev->pdev, 0);
 	int i, err;
+	printk("platofrm.get.irq is %d\n", irq);
 
-	if (irq) {
 		err = request_irq(irq, vm_interrupt, IRQF_SHARED,
 				dev_name(&vdev->dev), vm_dev);
-		if (err)
+		if (err) {
+			panic("%s: rq %d fail %d\n", __func__, irq, err);
 			return err;
-	}
+		}
 
 	for (i = 0; i < nvqs; ++i) {
 		vqs[i] = vm_setup_vq(vdev, i, callbacks[i], names[i]);
