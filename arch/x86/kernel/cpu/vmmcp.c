@@ -202,9 +202,9 @@ static void __init vmmcp_platform_setup(void)
 {
 	printk("vmmcp platform setup ...\n");
 	x86_platform.calibrate_tsc = vmmcp_get_tsc_khz;
-	vmmcp_init_IRQ();
+	//vmmcp_init_IRQ();
 	/* APIC read/write intercepts */
-	set_lguest_basic_apic_ops();
+	//set_lguest_basic_apic_ops();
 	printk(" DONE vmmcp platform setup ...\n");
 }
 

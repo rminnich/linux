@@ -40,6 +40,7 @@ extern void generic_apic_probe(void);
 #else
 static inline void generic_apic_probe(void)
 {
+	printk("generic_apic_probe is a no op. \n");
 }
 #endif
 

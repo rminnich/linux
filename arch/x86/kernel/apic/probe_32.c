@@ -191,13 +191,16 @@ void __init generic_apic_probe(void)
 {
 	if (!cmdline_apic) {
 		struct apic **drv;
+printk("GAP\n");
 
 		for (drv = __apicdrivers; drv < __apicdrivers_end; drv++) {
+printk("TRY %p? probe is %p\n", drv, drv->probe);
 			if ((*drv)->probe()) {
 				apic = *drv;
 				break;
 			}
 		}
+printk("apic driver is %p\n", drv);
 		/* Not visible without early console */
 		if (drv == __apicdrivers_end)
 			panic("Didn't find an APIC driver");

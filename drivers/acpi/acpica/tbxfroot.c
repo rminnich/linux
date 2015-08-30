@@ -147,11 +147,15 @@ acpi_status __init acpi_find_root_pointer(acpi_physical_address * table_address)
 	u8 *table_ptr;
 	u8 *mem_rover;
 	u32 physical_address;
-
+printk("ROOT\n");
 	ACPI_FUNCTION_TRACE(acpi_find_root_pointer);
 
+#ifndef CONFIG_VMMCP
+fuck
 	/* 1a) Get the location of the Extended BIOS Data Area (EBDA) */
-
+printk("%p %p \n", (acpi_physical_address)
+				       ACPI_EBDA_PTR_LOCATION,
+				       ACPI_EBDA_PTR_LENGTH);
 	table_ptr = acpi_os_map_memory((acpi_physical_address)
 				       ACPI_EBDA_PTR_LOCATION,
 				       ACPI_EBDA_PTR_LENGTH);
@@ -162,14 +166,16 @@ acpi_status __init acpi_find_root_pointer(acpi_physical_address * table_address)
 
 		return_ACPI_STATUS(AE_NO_MEMORY);
 	}
-
+printk("%p\n", table_ptr);
+printk("FUCK1\n");
 	ACPI_MOVE_16_TO_32(&physical_address, table_ptr);
 
 	/* Convert segment part to physical address */
 
+printk("FUCK1\n");
 	physical_address <<= 4;
 	acpi_os_unmap_memory(table_ptr, ACPI_EBDA_PTR_LENGTH);
-
+printk("%p\n", physical_address);
 	/* EBDA present? */
 
 	if (physical_address > 0x400) {
@@ -188,11 +194,12 @@ acpi_status __init acpi_find_root_pointer(acpi_physical_address * table_address)
 			return_ACPI_STATUS(AE_NO_MEMORY);
 		}
 
+printk("scan %p\n", table_ptr);
 		mem_rover =
 		    acpi_tb_scan_memory_for_rsdp(table_ptr,
 						 ACPI_EBDA_WINDOW_SIZE);
 		acpi_os_unmap_memory(table_ptr, ACPI_EBDA_WINDOW_SIZE);
-
+printk("FUCK %p\n", mem_rover);
 		if (mem_rover) {
 
 			/* Return the physical address */
@@ -200,15 +207,18 @@ acpi_status __init acpi_find_root_pointer(acpi_physical_address * table_address)
 			physical_address +=
 			    (u32) ACPI_PTR_DIFF(mem_rover, table_ptr);
 
+printk("FUCK %p\n", physical_address);
 			*table_address =
 			    (acpi_physical_address) physical_address;
 			return_ACPI_STATUS(AE_OK);
 		}
 	}
 
+#endif
 	/*
 	 * 2) Search upper memory: 16-byte boundaries in E0000h-FFFFFh
 	 */
+printk("upper mem\n");
 	table_ptr = acpi_os_map_memory((acpi_physical_address)
 				       ACPI_HI_RSDP_WINDOW_BASE,
 				       ACPI_HI_RSDP_WINDOW_SIZE);
@@ -226,6 +236,7 @@ acpi_status __init acpi_find_root_pointer(acpi_physical_address * table_address)
 	    acpi_tb_scan_memory_for_rsdp(table_ptr, ACPI_HI_RSDP_WINDOW_SIZE);
 	acpi_os_unmap_memory(table_ptr, ACPI_HI_RSDP_WINDOW_SIZE);
 
+printk("SACAN FAFF mem_orver %p\n", mem_rover);
 	if (mem_rover) {
 
 		/* Return the physical address */
@@ -235,6 +246,7 @@ acpi_status __init acpi_find_root_pointer(acpi_physical_address * table_address)
 		     ACPI_PTR_DIFF(mem_rover, table_ptr));
 
 		*table_address = (acpi_physical_address) physical_address;
+printk("TA %p\n", (void *)physical_address);
 		return_ACPI_STATUS(AE_OK);
 	}
 

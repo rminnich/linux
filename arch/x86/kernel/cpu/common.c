@@ -607,6 +607,8 @@ void get_cpu_cap(struct cpuinfo_x86 *c)
 		u32 capability, excap;
 
 		cpuid(0x00000001, &tfms, &ebx, &excap, &capability);
+printk("cpuid 1 %x %x %x %x API %x\n", tfms, ebx, excap, capability, X86_FEATURE_APIC);
+printk("%x %x\n", capability, excap);
 		c->x86_capability[0] = capability;
 		c->x86_capability[4] = excap;
 	}
@@ -616,7 +618,6 @@ void get_cpu_cap(struct cpuinfo_x86 *c)
 		u32 eax, ebx, ecx, edx;
 
 		cpuid_count(0x00000007, 0, &eax, &ebx, &ecx, &edx);
-
 		c->x86_capability[9] = ebx;
 	}
 
@@ -679,6 +680,7 @@ void get_cpu_cap(struct cpuinfo_x86 *c)
 		c->x86_power = cpuid_edx(0x80000007);
 
 	init_scattered_cpuid_features(c);
+	printk("cpu_has_apic %d\n", cpu_has_apic);
 }
 
 static void identify_cpu_without_cpuid(struct cpuinfo_x86 *c)
