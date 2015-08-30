@@ -282,7 +282,6 @@ void set_pte_vaddr_pud(pud_t *pud_page, unsigned long vaddr, pte_t new_pte)
 	 * It's enough to flush this one mapping.
 	 * (PGE mappings get flushed as well)
 	 */
-printk("FLUSH ONE %p\n", (void *)vaddr);
 	__flush_tlb_one(vaddr);
 }
 

@@ -1076,7 +1076,7 @@ char *__init default_machine_specific_memory_setup(void)
 		e820.nr_map = 0;
 #ifdef CONFIG_VMMCP
 		/* HACK. For now. */
-		printk("NOTE: -----------------------> hardwired memory 0 to 15M is reserved, 15M and up is memory. \n");
+		printk("NOTE: -----------------------> hardwired memory 0 to 16M is reserved, 16M and up is memory. \n");
 		e820_add_region(0, 16*1048576, E820_RESERVED);
 		e820_add_region(16*1048576, 128*1048576, E820_RAM);
 		e820_add_region(4096*1048576, 2*1048576, E820_RAM);

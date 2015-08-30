@@ -368,6 +368,7 @@ int __init
 acpi_table_parse_madt(enum acpi_madt_type id,
 		      acpi_tbl_entry_handler handler, unsigned int max_entries)
 {
+printk("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %s\n", __func__);
 	return acpi_table_parse_entries(ACPI_SIG_MADT,
 					    sizeof(struct acpi_table_madt), id,
 					    handler, max_entries);
@@ -418,6 +419,7 @@ static void __init check_multiple_madt(void)
 	acpi_size tbl_size;
 
 	acpi_get_table_with_size(ACPI_SIG_MADT, 2, &table, &tbl_size);
+printk("%s   ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, table %p tbl_size %d\n", __func__, table, tbl_size);
 	if (table) {
 		pr_warn("BIOS bug: multiple APIC/MADT found, using %d\n",
 			acpi_apic_instance);
@@ -444,6 +446,7 @@ static void __init check_multiple_madt(void)
 int __init acpi_table_init(void)
 {
 	acpi_status status;
+printk("AAAAAAAAAAAAAAAAAAAAAAAAAAAA %s\n", __func__);
 
 	if (acpi_verify_table_checksum) {
 		pr_info("Early table checksum verification enabled\n");
@@ -454,6 +457,7 @@ int __init acpi_table_init(void)
 	}
 
 	status = acpi_initialize_tables(initial_tables, ACPI_MAX_TABLES, 0);
+printk("%s, init tables status %d\n", __func__, status);
 	if (ACPI_FAILURE(status))
 		return -EINVAL;
 

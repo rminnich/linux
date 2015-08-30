@@ -113,6 +113,7 @@ acpi_initialize_tables(struct acpi_table_desc * initial_table_array,
 	 */
 	if (!initial_table_array) {
 		status = acpi_allocate_root_table(initial_table_count);
+printk("ALLOC ROOT talbestatus %d\n", status);
 		if (ACPI_FAILURE(status)) {
 			return_ACPI_STATUS(status);
 		}
@@ -135,7 +136,9 @@ acpi_initialize_tables(struct acpi_table_desc * initial_table_array,
 	/* Get the address of the RSDP */
 
 	rsdp_address = acpi_os_get_root_pointer();
+printk("rsdp_address %p\n", rsdp_address);
 	if (!rsdp_address) {
+printk("NOT FOUDN\n");
 		return_ACPI_STATUS(AE_NOT_FOUND);
 	}
 
@@ -145,6 +148,7 @@ acpi_initialize_tables(struct acpi_table_desc * initial_table_array,
 	 * in a common, more useable format.
 	 */
 	status = acpi_tb_parse_root_table(rsdp_address);
+printk("parse root table %d\n", status);
 	return_ACPI_STATUS(status);
 }
 
@@ -295,8 +299,10 @@ acpi_get_table_with_size(char *signature,
 
 	/* Walk the root table list */
 
+printk("%s %s %d\n", __func__, signature, acpi_gbl_root_table_list.current_table_count);
 	for (i = 0, j = 0; i < acpi_gbl_root_table_list.current_table_count;
 	     i++) {
+printk("CHECK %s\n", (char *) &acpi_gbl_root_table_list.tables[i].signature);
 		if (!ACPI_COMPARE_NAME
 		    (&(acpi_gbl_root_table_list.tables[i].signature),
 		     signature)) {
@@ -309,6 +315,7 @@ acpi_get_table_with_size(char *signature,
 
 		status =
 		    acpi_tb_validate_table(&acpi_gbl_root_table_list.tables[i]);
+printk("status of alidate %d\n", status);
 		if (ACPI_SUCCESS(status)) {
 			*out_table = acpi_gbl_root_table_list.tables[i].pointer;
 			*tbl_size = acpi_gbl_root_table_list.tables[i].length;
@@ -320,7 +327,7 @@ acpi_get_table_with_size(char *signature,
 
 		return (status);
 	}
-
+printk("NOT FOUDN\n");
 	return (AE_NOT_FOUND);
 }
 

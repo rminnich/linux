@@ -1645,10 +1645,10 @@ static int __init detect_init_APIC(void)
 printk("cpu has apic %d\n", cpu_has_apic);
 	if (!cpu_has_apic) {
 		pr_info("No local APIC present\n");
-		return -1;
+		panic("FUCK");
 	}
-
 	mp_lapic_addr = APIC_DEFAULT_PHYS_BASE;
+printk("MP_lpaic addr = %P\n", mp_lapic_addr);
 	return 0;
 }
 #else
@@ -1663,10 +1663,12 @@ printk("))))))))))************))))))))))))))00 %s\n", __func__);
 	 * in `cpuid'
 	 */
 	features = cpuid_edx(1);
+	printk("featurs 0x%x\n", features);
 	if (!(features & (1 << X86_FEATURE_APIC))) {
 		pr_warning("Could not enable APIC!\n");
 		return -1;
 	}
+printk("--------> has an apic it seems. \n");
 	set_cpu_cap(&boot_cpu_data, X86_FEATURE_APIC);
 	mp_lapic_addr = APIC_DEFAULT_PHYS_BASE;
 
@@ -1781,13 +1783,15 @@ printk("NOPIFY NO APIC FOUND\n");
 		pr_info("APIC: disable apic facility\n");
 		apic_disable();
 	} else {
-printk("FUCK! NO NOPIFY\n");
+printk("FUCK! NO NOPIFY mp_lapic_addr %p\n", mp_lapic_addr);
 		apic_phys = mp_lapic_addr;
 
 		/*
 		 * acpi lapic path already maps that address in
 		 * acpi_register_lapic_address()
 		 */
+printk("apic_phys %p\n", apic_phys);
+if (! apic_phys) panic("NULL apic address");
 		if (!acpi_lapic && !smp_found_config)
 			register_lapic_address(apic_phys);
 	}
@@ -1815,7 +1819,7 @@ void __init register_lapic_address(unsigned long address)
 {
 	mp_lapic_addr = address;
 
-printk("))))))))))************))))))))))))))00 %s x2apic_mode %d\n", __func__, x2apic_mode);
+printk("))))))))))************))))))))))))))00 %s address %p x2apic_mode %d\n", __func__, address, x2apic_mode);
 	if (!x2apic_mode) {
 		set_fixmap_nocache(FIX_APIC_BASE, address);
 		apic_printk(APIC_VERBOSE, "mapped APIC to %16lx (%16lx)\n",

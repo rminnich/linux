@@ -677,6 +677,7 @@ void get_cpu_cap(struct cpuinfo_x86 *c)
 		c->x86_capability[CPUID_8000_000A_EDX] = cpuid_edx(0x8000000a);
 
 	init_scattered_cpuid_features(c);
+	printk("cpu_has_apic %d\n", cpu_has_apic);
 }
 
 static void identify_cpu_without_cpuid(struct cpuinfo_x86 *c)
