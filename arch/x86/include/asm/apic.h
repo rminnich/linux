@@ -45,7 +45,6 @@ extern void generic_apic_probe(void);
 #else
 static inline void generic_apic_probe(void)
 {
-	printk("generic_apic_probe is a no op. \n");
 }
 #endif
 
@@ -115,10 +114,9 @@ extern u64 native_apic_icr_read(void);
 static inline bool apic_is_x2apic_enabled(void)
 {
 	u64 msr;
-printk("is x2 enabled?\n");
+
 	if (rdmsrl_safe(MSR_IA32_APICBASE, &msr))
 		return false;
-printk("%s\n",  msr & X2APIC_ENABLE ? "yes" : "no");
 	return msr & X2APIC_ENABLE;
 }
 
@@ -242,7 +240,6 @@ extern void __init check_x2apic(void);
 extern void x2apic_setup(void);
 static inline int x2apic_enabled(void)
 {
-printk("x2apic_enabled cpu_has_x2apic %d\n", cpu_has_x2apic);
 	return cpu_has_x2apic && apic_is_x2apic_enabled();
 }
 
