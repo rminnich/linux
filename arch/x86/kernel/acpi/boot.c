@@ -135,7 +135,6 @@ void __init __acpi_unmap_table(char *map, unsigned long size)
 static int __init acpi_parse_madt(struct acpi_table_header *table)
 {
 	struct acpi_table_madt *madt = NULL;
-printk("=================================cpu has apic %d\n", cpu_has_apic);
 
 	if (!cpu_has_apic)
 		return -EINVAL;
@@ -225,7 +224,6 @@ static int __init
 acpi_parse_lapic(struct acpi_subtable_header * header, const unsigned long end)
 {
 	struct acpi_madt_local_apic *processor = NULL;
-printk("%s\n", __func__);
 
 	processor = (struct acpi_madt_local_apic *)header;
 
@@ -410,7 +408,7 @@ acpi_parse_ioapic(struct acpi_subtable_header * header, const unsigned long end)
 		.type = IOAPIC_DOMAIN_DYNAMIC,
 		.ops = &mp_ioapic_irqdomain_ops,
 	};
-printk("%s\n", __func__);
+
 	ioapic = (struct acpi_madt_io_apic *)header;
 
 	if (BAD_MADT_ENTRY(ioapic, end))
@@ -952,7 +950,7 @@ static int __init acpi_parse_fadt(struct acpi_table_header *table)
 static int __init early_acpi_parse_madt_lapic_addr_ovr(void)
 {
 	int count;
-printk("%s ^^^^^^^^^^^^^^^^^^^^^^^^^ cpu has apic %d\n", __func__, cpu_has_apic);
+
 	if (!cpu_has_apic)
 		return -ENODEV;
 
@@ -981,7 +979,6 @@ static int __init acpi_parse_madt_lapic_entries(void)
 	int ret;
 	struct acpi_subtable_proc madt_proc[2];
 
-printk("cpu has apic ============================= %s %d\n", __func__, cpu_has_apic);
 	if (!cpu_has_apic)
 		return -ENODEV;
 
@@ -1049,7 +1046,6 @@ static void __init mp_config_acpi_legacy_irqs(void)
 {
 	int i;
 	struct mpc_intsrc mp_irq;
-printk(",,,,,,,,,,,,,,,,,,,,,,,,,,,,,, %s\n", __func__);
 
 #ifdef CONFIG_EISA
 	/*
@@ -1119,7 +1115,7 @@ printk(",,,,,,,,,,,,,,,,,,,,,,,,,,,,,, %s\n", __func__);
 static int __init acpi_parse_madt_ioapic_entries(void)
 {
 	int count;
-printk("----------------------------------------- %s\n", __func__);
+
 	/*
 	 * ACPI interpreter is required to complete interrupt setup,
 	 * so if it is off, don't enumerate the io-apics with ACPI.
@@ -1192,9 +1188,8 @@ static void __init early_acpi_process_madt(void)
 {
 #ifdef CONFIG_X86_LOCAL_APIC
 	int error;
-printk("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ %s\n", __func__);
+
 	if (!acpi_table_parse(ACPI_SIG_MADT, acpi_parse_madt)) {
-printk("PARSE is 0\n");
 
 		/*
 		 * Parse MADT LAPIC entries
@@ -1221,14 +1216,12 @@ static void __init acpi_process_madt(void)
 #ifdef CONFIG_X86_LOCAL_APIC
 	int error;
 
-printk("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ %s\n", __func__);
 	if (!acpi_table_parse(ACPI_SIG_MADT, acpi_parse_madt)) {
 
 		/*
 		 * Parse MADT LAPIC entries
 		 */
 		error = acpi_parse_madt_lapic_entries();
-printk("FOUND MADT DID WE PARSE LAPIC ENTRIES 0 IS GOOD %d\n", error);
 		if (!error) {
 			acpi_lapic = 1;
 
@@ -1238,12 +1231,10 @@ printk("FOUND MADT DID WE PARSE LAPIC ENTRIES 0 IS GOOD %d\n", error);
 			mutex_lock(&acpi_ioapic_lock);
 			error = acpi_parse_madt_ioapic_entries();
 			mutex_unlock(&acpi_ioapic_lock);
-			printk("DID WE PARSE IOAPIC ENTRIES %d\n", error);
 			if (!error) {
 				acpi_set_irq_model_ioapic();
 
 				smp_found_config = 1;
-printk("FINALL SETGN FOUDN CONFIG TO 1\n");
 			}
 		}
 		if (error == -EINVAL) {
@@ -1260,7 +1251,6 @@ printk("FINALL SETGN FOUDN CONFIG TO 1\n");
  		 * In the event an MPS table was found, forget it.
  		 * Boot with "acpi=off" to use MPS on such a system.
  		 */
-printk("FOUND NO MADT++++++++++++++++++++++++++++++\n");
 		if (smp_found_config) {
 			printk(KERN_WARNING PREFIX
 				"No APIC-table, disabling MPS\n");
@@ -1284,7 +1274,6 @@ printk("FOUND NO MADT++++++++++++++++++++++++++++++\n");
 
 static int __init disable_acpi_irq(const struct dmi_system_id *d)
 {
-printk("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ %s\n", __func__);
 	if (!acpi_force) {
 		printk(KERN_NOTICE "%s detected: force use of acpi=noirq\n",
 		       d->ident);
@@ -1295,7 +1284,6 @@ printk("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ %s\n", __func__);
 
 static int __init disable_acpi_pci(const struct dmi_system_id *d)
 {
-printk("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ %s\n", __func__);
 	if (!acpi_force) {
 		printk(KERN_NOTICE "%s detected: force use of pci=noacpi\n",
 		       d->ident);
@@ -1338,7 +1326,6 @@ static int __init dmi_ignore_irq0_timer_override(const struct dmi_system_id *d)
  */
 static void __init acpi_reduced_hw_init(void)
 {
-printk("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ %s\n", __func__);
 	if (acpi_gbl_reduced_hardware) {
 		/*
 		 * Override x86_init functions and bypass legacy pic
@@ -1506,14 +1493,12 @@ void __init acpi_boot_table_init(void)
 {
 	dmi_check_system(acpi_dmi_table);
 
-printk("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ %s\n", __func__);
 	/*
 	 * If acpi_disabled, bail out
 	 */
 	if (acpi_disabled)
 		return; 
 
-printk("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ %s\n", __func__);
 	/*
 	 * Initialize the ACPI boot-time table parser.
 	 */
@@ -1522,7 +1507,6 @@ printk("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ %s\n", __func__);
 		return;
 	}
 
-printk("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ %s\n", __func__);
 	acpi_table_parse(ACPI_SIG_BOOT, acpi_parse_sbf);
 
 	/*
@@ -1541,7 +1525,6 @@ printk("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ %s\n", __func__);
 
 int __init early_acpi_boot_init(void)
 {
-printk("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ %s\n", __func__);
 	/*
 	 * If acpi_disabled, bail out
 	 */
@@ -1566,7 +1549,6 @@ int __init acpi_boot_init(void)
 	/* those are executed after early-quirks are executed */
 	dmi_check_system(acpi_dmi_table_late);
 
-printk("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ %s\n", __func__);
 	/*
 	 * If acpi_disabled, bail out
 	 */
@@ -1595,7 +1577,6 @@ printk("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ %s\n", __func__);
 
 static int __init parse_acpi(char *arg)
 {
-printk("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ %s\n", __func__);
 	if (!arg)
 		return -EINVAL;
 
