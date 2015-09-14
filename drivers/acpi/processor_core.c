@@ -113,9 +113,8 @@ static phys_cpuid_t map_madt_entry(int type, u32 acpi_id)
 	unsigned long madt_end, entry;
 	phys_cpuid_t phys_id = PHYS_CPUID_INVALID;	/* CPU hardware ID */
 	struct acpi_table_madt *madt;
-printk("5555555555555555555555555555555555 %s\n", __func__);
+
 	madt = get_madt_table();
-printk("madt is %p\n", madt);
 	if (!madt)
 		return phys_id;
 

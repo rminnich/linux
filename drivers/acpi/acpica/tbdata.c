@@ -73,7 +73,6 @@ acpi_tb_init_table_descriptor(struct acpi_table_desc *table_desc,
 	 * Initialize the table descriptor. Set the pointer to NULL, since the
 	 * table is not fully mapped at this time.
 	 */
-	printk("init table de with %p, %p %x %p\n", table_desc, address, flags, table);
 	ACPI_MEMSET(table_desc, 0, sizeof(struct acpi_table_desc));
 	table_desc->address = address;
 	table_desc->length = table->length;
