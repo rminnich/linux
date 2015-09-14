@@ -28,9 +28,7 @@ static void fpu__init_cpu_generic(void)
 {
 	unsigned long cr0;
 	unsigned long cr4_mask = 0;
-#if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
-	early_printk("hi\n");
-#endif
+
 	if (cpu_has_fxsr)
 		cr4_mask |= X86_CR4_OSFXSR;
 	if (cpu_has_xmm)
@@ -58,9 +56,6 @@ static void fpu__init_cpu_generic(void)
  */
 void fpu__init_cpu(void)
 {
-#if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
-	early_printk("hi\n");
-#endif
 	fpu__init_cpu_generic();
 	fpu__init_cpu_xstate();
 	fpu__init_cpu_ctx_switch();
@@ -77,9 +72,6 @@ static void fpu__init_system_early_generic(struct cpuinfo_x86 *c)
 	unsigned long cr0;
 	u16 fsw, fcw;
 
-#if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
-	early_printk("%s\n", __func__);
-#endif
 	fsw = fcw = 0xffff;
 
 	cr0 = read_cr0();
