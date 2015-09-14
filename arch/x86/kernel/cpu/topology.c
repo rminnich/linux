@@ -36,7 +36,7 @@ void detect_extended_topology(struct cpuinfo_x86 *c)
 
 	if (c->cpuid_level < 0xb)
 		return;
-printk(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> -> cpuid count\n");
+
 	cpuid_count(0xb, SMT_LEVEL, &eax, &ebx, &ecx, &edx);
 
 	/*
@@ -45,13 +45,11 @@ printk(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> -> cpuid count\n");
 	if (ebx == 0 || (LEAFB_SUBTYPE(ecx) != SMT_TYPE))
 		return;
 
-printk("HAS TOPOLOGY\n");
 	set_cpu_cap(c, X86_FEATURE_XTOPOLOGY);
 
 	/*
 	 * initial apic id, which also represents 32-bit extended x2apic id.
 	 */
-printk("initial apic id %d\n", edx);
 	c->initial_apicid = edx;
 
 	/*

@@ -1449,7 +1449,6 @@ static void __x2apic_disable(void)
 		return;
 
 	rdmsrl(MSR_IA32_APICBASE, msr);
-printk("x2 apic disable\n");
 	if (!(msr & X2APIC_ENABLE))
 		return;
 	/* Disable xapic and x2apic first and then reenable xapic mode */
@@ -1471,7 +1470,6 @@ static void __x2apic_enable(void)
 
 static int __init setup_nox2apic(char *str)
 {
-printk("))))))))))************))))))))))))))00 %s\n", __func__);
 	if (x2apic_enabled()) {
 		int apicid = native_apic_msr_read(APIC_ID);
 
@@ -1534,11 +1532,9 @@ static __init void x2apic_enable(void)
 
 static __init void try_to_enable_x2apic(int remap_mode)
 {
-printk("))))))))))************))))))))))))))00 %s\n", __func__);
 	if (x2apic_state == X2APIC_DISABLED)
 		return;
 
-printk("))))))))))************))))))))))))))00 %s\n", __func__);
 	if (remap_mode != IRQ_REMAP_X2APIC_MODE) {
 		/* IR is required if there is APIC ID > 255 even when running
 		 * under KVM
@@ -1561,21 +1557,17 @@ printk("))))))))))************))))))))))))))00 %s\n", __func__);
 
 void __init check_x2apic(void)
 {
-printk("))))))))))************))))))))))))))00 %s\n", __func__);
 	if (x2apic_enabled()) {
-printk("))))))))))************))))))))))))))00 %s enabled\n", __func__);
 		pr_info("x2apic: enabled by BIOS, switching to x2apic ops\n");
 		x2apic_mode = 1;
 		x2apic_state = X2APIC_ON;
 	} else if (!cpu_has_x2apic) {
-printk("))))))))))************))))))))))))))00 %s disdabled\n", __func__);
 		x2apic_state = X2APIC_DISABLED;
 	}
 }
 #else /* CONFIG_X86_X2APIC */
 static int __init validate_x2apic(void)
 {
-printk("))))))))))************))))))))))))))00 %s BAD SIDE\n", __func__);
 	if (!apic_is_x2apic_enabled())
 		return 0;
 	/*
@@ -1591,7 +1583,6 @@ static inline void __x2apic_enable(void) { }
 
 static int __init try_to_enable_IR(void)
 {
-printk("))))))))))************))))))))))))))00 %s\n", __func__);
 #ifdef CONFIG_X86_IO_APIC
 	if (!x2apic_enabled() && skip_ioapic_setup) {
 		pr_info("Not enabling interrupt remapping due to skipped IO-APIC setup\n");
@@ -1603,7 +1594,6 @@ printk("))))))))))************))))))))))))))00 %s\n", __func__);
 
 void __init enable_IR_x2apic(void)
 {
-printk("))))))))))************))))))))))))))00 %s\n", __func__);
 	unsigned long flags;
 	int ret, ir_stat;
 
@@ -1642,13 +1632,12 @@ printk("))))))))))************))))))))))))))00 %s\n", __func__);
  */
 static int __init detect_init_APIC(void)
 {
-printk("cpu has apic %d\n", cpu_has_apic);
 	if (!cpu_has_apic) {
 		pr_info("No local APIC present\n");
-		panic("FUCK");
+		return -1;
 	}
+
 	mp_lapic_addr = APIC_DEFAULT_PHYS_BASE;
-printk("MP_lpaic addr = %P\n", mp_lapic_addr);
 	return 0;
 }
 #else
@@ -1657,24 +1646,20 @@ static int __init apic_verify(void)
 {
 	u32 features, h, l;
 
-printk("))))))))))************))))))))))))))00 %s\n", __func__);
 	/*
 	 * The APIC feature bit should now be enabled
 	 * in `cpuid'
 	 */
 	features = cpuid_edx(1);
-	printk("featurs 0x%x\n", features);
 	if (!(features & (1 << X86_FEATURE_APIC))) {
 		pr_warning("Could not enable APIC!\n");
 		return -1;
 	}
-printk("--------> has an apic it seems. \n");
 	set_cpu_cap(&boot_cpu_data, X86_FEATURE_APIC);
 	mp_lapic_addr = APIC_DEFAULT_PHYS_BASE;
 
 	/* The BIOS may have set up the APIC at some other address */
 	if (boot_cpu_data.x86 >= 6) {
-printk("))))))))))************))))))))))))))00 %s\n", __func__);
 		rdmsr(MSR_IA32_APICBASE, l, h);
 		if (l & MSR_IA32_APICBASE_ENABLE)
 			mp_lapic_addr = l & MSR_IA32_APICBASE_BASE;
@@ -1687,7 +1672,6 @@ printk("))))))))))************))))))))))))))00 %s\n", __func__);
 int __init apic_force_enable(unsigned long addr)
 {
 	u32 h, l;
-printk("))))))))))************))))))))))))))00 %s\n", __func__);
 
 	if (disable_apic)
 		return -1;
@@ -1715,7 +1699,6 @@ printk("))))))))))************))))))))))))))00 %s\n", __func__);
  */
 static int __init detect_init_APIC(void)
 {
-printk("))))))))))************))))))))))))))00 %s\n", __func__);
 	/* Disabled by kernel option? */
 	if (disable_apic)
 		return -1;
@@ -1768,30 +1751,24 @@ no_apic:
 void __init init_apic_mappings(void)
 {
 	unsigned int new_apicid;
-printk("init apic mappings\n"); early_printk("init apic mppaings\n");
 
 	if (x2apic_mode) {
-		printk("x2apic_mode?\n");
 		boot_cpu_physical_apicid = read_apic_id();
 		return;
 	}
-printk("WTF smp_found_config %d \n", smp_found_config);
+
 	/* If no local APIC can be found return early */
 	if (!smp_found_config && detect_init_APIC()) {
-printk("NOPIFY NO APIC FOUND\n");
 		/* lets NOP'ify apic operations */
 		pr_info("APIC: disable apic facility\n");
 		apic_disable();
 	} else {
-printk("FUCK! NO NOPIFY mp_lapic_addr %p\n", mp_lapic_addr);
 		apic_phys = mp_lapic_addr;
 
 		/*
 		 * acpi lapic path already maps that address in
 		 * acpi_register_lapic_address()
 		 */
-printk("apic_phys %p\n", apic_phys);
-if (! apic_phys) panic("NULL apic address");
 		if (!acpi_lapic && !smp_found_config)
 			register_lapic_address(apic_phys);
 	}
@@ -1819,7 +1796,6 @@ void __init register_lapic_address(unsigned long address)
 {
 	mp_lapic_addr = address;
 
-printk("))))))))))************))))))))))))))00 %s address %p x2apic_mode %d\n", __func__, address, x2apic_mode);
 	if (!x2apic_mode) {
 		set_fixmap_nocache(FIX_APIC_BASE, address);
 		apic_printk(APIC_VERBOSE, "mapped APIC to %16lx (%16lx)\n",
