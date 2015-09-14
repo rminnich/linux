@@ -202,14 +202,12 @@ static acpi_physical_address
 acpi_tb_get_root_table_entry(u8 *table_entry, u32 table_entry_size)
 {
 	u64 address64;
-printk("get root table entry @ %p, size %d\n", table_entry, table_entry_size);
 
 	/*
 	 * Get the table physical address (32-bit for RSDT, 64-bit for XSDT):
 	 * Note: Addresses are 32-bit aligned (not 64) in both RSDT and XSDT
 	 */
 	if (table_entry_size == ACPI_RSDT_ENTRY_SIZE) {
-printk("case 1, return %p\n", (*ACPI_CAST_PTR(u32, table_entry)));
 		/*
 		 * 32-bit platform, RSDT: Return 32-bit table entry
 		 * 64-bit platform, RSDT: Expand 32-bit to 64-bit and return
@@ -223,7 +221,6 @@ printk("case 1, return %p\n", (*ACPI_CAST_PTR(u32, table_entry)));
 		 *  return 64-bit
 		 */
 		ACPI_MOVE_64_TO_64(&address64, table_entry);
-printk("case 2\n");
 
 #if ACPI_MACHINE_WIDTH == 32
 		if (address64 > ACPI_UINT32_MAX) {
@@ -236,7 +233,6 @@ printk("case 2\n");
 					   ACPI_FORMAT_UINT64(address64)));
 		}
 #endif
-		printk("return %p\n", address64);
 		return ((acpi_physical_address) (address64));
 	}
 }
@@ -328,7 +324,6 @@ acpi_status __init acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
 		ACPI_BIOS_ERROR((AE_INFO,
 				 "Invalid table length 0x%X in RSDT/XSDT",
 				 length));
-		panic("FUCK");
 		return_ACPI_STATUS(AE_INVALID_TABLE_LENGTH);
 	}
 
@@ -359,7 +354,6 @@ acpi_status __init acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
 
 		address =
 		    acpi_tb_get_root_table_entry(table_entry, table_entry_size);
-		printk("address is %p\n", address);
 
 		/* Skip NULL entries in RSDT/XSDT */
 
@@ -371,7 +365,7 @@ acpi_status __init acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
 							ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL,
 							FALSE, TRUE,
 							&table_index);
-printk("install standard table is %d\n", status);
+
 		if (ACPI_SUCCESS(status) &&
 		    ACPI_COMPARE_NAME(&acpi_gbl_root_table_list.
 				      tables[table_index].signature,

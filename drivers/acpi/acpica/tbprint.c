@@ -71,7 +71,6 @@ acpi_tb_cleanup_table_header(struct acpi_table_header *out_header,
 
 static void acpi_tb_fix_string(char *string, acpi_size length)
 {
-printk("%s\n", __func__);
 
 	while (length && *string) {
 		if (!isprint((int)*string)) {
@@ -128,18 +127,16 @@ acpi_tb_print_table_header(acpi_physical_address address,
 			   struct acpi_table_header *header)
 {
 	struct acpi_table_header local_header;
-printk("%s %p %p \n", __func__, address, header);
-printk("%p \n", header->signature);
 
 	if (ACPI_COMPARE_NAME(header->signature, ACPI_SIG_FACS)) {
-printk("FACS\n");
+
 		/* FACS only has signature and length fields */
 
 		ACPI_INFO((AE_INFO, "%-4.4s 0x%8.8X%8.8X %06X",
 			   header->signature, ACPI_FORMAT_UINT64(address),
 			   header->length));
 	} else if (ACPI_VALIDATE_RSDP_SIG(header->signature)) {
-printk("RSDP\n");
+
 		/* RSDP has no common fields */
 
 		memcpy(local_header.oem_id,
@@ -158,7 +155,7 @@ printk("RSDP\n");
 			   local_header.oem_id));
 	} else {
 		/* Standard ACPI table with full common header */
-printk("FUCK\n");
+
 		acpi_tb_cleanup_table_header(&local_header, header);
 
 		ACPI_INFO((AE_INFO,
@@ -171,7 +168,6 @@ printk("FUCK\n");
 			   local_header.asl_compiler_id,
 			   local_header.asl_compiler_revision));
 	}
-printk("DONE\n");
 }
 
 /*******************************************************************************
