@@ -105,13 +105,13 @@ static RADIX_TREE(irq_desc_tree, GFP_KERNEL);
 
 static void irq_insert_desc(unsigned int irq, struct irq_desc *desc)
 {
-printk("insert desc %d\n", irq);
+printk("insert desc %d %p\n", irq, desc);
 	radix_tree_insert(&irq_desc_tree, irq, desc);
 }
 
 struct irq_desc *irq_to_desc(unsigned int irq)
 {
-printk("irq to desc radix\n");
+printk("irq to desc radix %d %p\n", irq, radix_tree_lookup(&irq_desc_tree, irq));
 	return radix_tree_lookup(&irq_desc_tree, irq);
 }
 EXPORT_SYMBOL(irq_to_desc);

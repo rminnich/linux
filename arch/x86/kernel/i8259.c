@@ -55,6 +55,7 @@ unsigned long io_apic_irqs;
 
 static void mask_8259A_irq(unsigned int irq)
 {
+	printk("%s\n", __func__);
 	unsigned int mask = 1 << irq;
 	unsigned long flags;
 
@@ -69,6 +70,7 @@ static void mask_8259A_irq(unsigned int irq)
 
 static void disable_8259A_irq(struct irq_data *data)
 {
+	printk("%s\n", __func__);
 	mask_8259A_irq(data->irq);
 }
 
@@ -77,6 +79,7 @@ static void unmask_8259A_irq(unsigned int irq)
 	unsigned int mask = ~(1 << irq);
 	unsigned long flags;
 
+	printk("%s\n", __func__);
 	raw_spin_lock_irqsave(&i8259A_lock, flags);
 	cached_irq_mask &= mask;
 	if (irq & 8)
@@ -88,6 +91,7 @@ static void unmask_8259A_irq(unsigned int irq)
 
 static void enable_8259A_irq(struct irq_data *data)
 {
+	printk("%s\n", __func__);
 	unmask_8259A_irq(data->irq);
 }
 
@@ -97,6 +101,7 @@ static int i8259A_irq_pending(unsigned int irq)
 	unsigned long flags;
 	int ret;
 
+	printk("%s\n", __func__);
 	raw_spin_lock_irqsave(&i8259A_lock, flags);
 	if (irq < 8)
 		ret = inb(PIC_MASTER_CMD) & mask;
@@ -109,6 +114,7 @@ static int i8259A_irq_pending(unsigned int irq)
 
 static void make_8259A_irq(unsigned int irq)
 {
+	printk("===================================> %s\n", __func__);
 	disable_irq_nosync(irq);
 	io_apic_irqs &= ~(1<<irq);
 	irq_set_chip_and_handler(irq, &i8259A_chip, handle_level_irq);
@@ -126,6 +132,7 @@ static inline int i8259A_irq_real(unsigned int irq)
 	int value;
 	int irqmask = 1<<irq;
 
+	printk("%s\n", __func__);
 	if (irq < 8) {
 		outb(0x0B, PIC_MASTER_CMD);	/* ISR register */
 		value = inb(PIC_MASTER_CMD) & irqmask;
@@ -150,6 +157,7 @@ static void mask_and_ack_8259A(struct irq_data *data)
 	unsigned int irqmask = 1 << irq;
 	unsigned long flags;
 
+	printk("%s\n", __func__);
 	raw_spin_lock_irqsave(&i8259A_lock, flags);
 	/*
 	 * Lightweight spurious IRQ detection. We do not want
@@ -232,12 +240,14 @@ static char irq_trigger[2];
  */
 static void restore_ELCR(char *trigger)
 {
+	printk("%s\n", __func__);
 	outb(trigger[0], 0x4d0);
 	outb(trigger[1], 0x4d1);
 }
 
 static void save_ELCR(char *trigger)
 {
+	printk("%s\n", __func__);
 	/* IRQ 0,1,2,8,13 are marked as reserved */
 	trigger[0] = inb(0x4d0) & 0xF8;
 	trigger[1] = inb(0x4d1) & 0xDE;
@@ -245,18 +255,21 @@ static void save_ELCR(char *trigger)
 
 static void i8259A_resume(void)
 {
+	printk("%s\n", __func__);
 	init_8259A(i8259A_auto_eoi);
 	restore_ELCR(irq_trigger);
 }
 
 static int i8259A_suspend(void)
 {
+	printk("%s\n", __func__);
 	save_ELCR(irq_trigger);
 	return 0;
 }
 
 static void i8259A_shutdown(void)
 {
+	printk("%s\n", __func__);
 	/* Put the i8259A into a quiescent state that
 	 * the kernel initialization code can get it
 	 * out of.
@@ -273,6 +286,7 @@ static struct syscore_ops i8259_syscore_ops = {
 
 static void mask_8259A(void)
 {
+	printk("%s\n", __func__);
 	unsigned long flags;
 
 	raw_spin_lock_irqsave(&i8259A_lock, flags);
@@ -285,6 +299,7 @@ static void mask_8259A(void)
 
 static void unmask_8259A(void)
 {
+	printk("%s\n", __func__);
 	unsigned long flags;
 
 	raw_spin_lock_irqsave(&i8259A_lock, flags);
@@ -297,6 +312,7 @@ static void unmask_8259A(void)
 
 static int probe_8259A(void)
 {
+	printk("%s\n", __func__);
 	unsigned long flags;
 	unsigned char probe_val = ~(1 << PIC_CASCADE_IR);
 	unsigned char new_val;
@@ -391,6 +407,13 @@ static int legacy_pic_probe(void)
 	return 0;
 }
 
+static int vmmcp_irq_pending(unsigned int irq)
+{
+	printk("%s %d just return 1;\n", __func__, irq);
+	return 1;
+}
+
+
 struct legacy_pic null_legacy_pic = {
 	.nr_legacy_irqs = 0,
 	.chip = &dummy_irq_chip,
@@ -404,6 +427,105 @@ struct legacy_pic null_legacy_pic = {
 	.make_irq = legacy_pic_uint_noop,
 };
 
+#ifdef CONFIG_VMMCP8259
+
+/*
+ * 8259A PIC functions to handle ISA devices:
+ */
+
+/*
+ * Not all IRQs can be routed through the IO-APIC, eg. on certain (older)
+ * boards the timer interrupt is not really connected to any IO-APIC pin,
+ * it's fed to the master 8259A's IR0 line only.
+ *
+ * Any '1' bit in this mask means the IRQ is routed through the IO-APIC.
+ * this 'mixed mode' IRQ handling costs nothing because it's only used
+ * at IRQ setup time.
+
+unsigned long io_apic_irqs;
+ */
+static void mask_vmmcp_irq(unsigned int irq)
+{
+	printk("%s: IGNORING %d\n", __func__, irq);
+}
+
+static void disable_vmmcp_irq(struct irq_data *data)
+{
+	printk("%s\n", __func__);
+	mask_vmmcp_irq(data->irq);
+}
+
+static void unmask_vmmcp_irq(unsigned int irq)
+{
+	printk("%s: IGNORING %d\n", __func__, irq);
+}
+
+static void enable_vmmcp_irq(struct irq_data *data)
+{
+	printk("%s\n", __func__);
+	unmask_vmmcp_irq(data->irq);
+}
+
+/*
+ * This function assumes to be called rarely. Switching between
+ * vmmcp registers is slow.
+ * This has to be protected by the irq controller spinlock
+ * before being called.
+ */
+static inline int vmmcp_irq_real(unsigned int irq)
+{
+	return 0;
+}
+
+static void mask_and_ack_vmmcp(struct irq_data *data)
+{
+	printk("%s: IGNORING %d\n", __func__, data->irq);
+}
+
+struct irq_chip vmmcp_chip = {
+	.name		= "XT-PIC",
+	.irq_mask	= disable_vmmcp_irq,
+	.irq_disable	= disable_vmmcp_irq,
+	.irq_unmask	= enable_vmmcp_irq,
+	.irq_mask_ack	= mask_and_ack_vmmcp,
+};
+
+void make_vmmcp_irq(unsigned int irq)
+{
+	disable_irq_nosync(irq);
+	io_apic_irqs &= ~(1<<irq);
+	irq_set_chip_and_handler(irq, &vmmcp_chip, handle_level_irq);
+	enable_irq(irq);
+}
+
+static void mask_vmmcp(void)
+{
+	printk("%s IGNORING\n", __func__);
+}
+
+static void unmask_vmmcp(void)
+{
+	printk("%s IGNORING\n", __func__);
+}
+
+static void init_vmmpic(int ignored)
+{
+	printk("%s IGNORING arg %d\n", __func__, ignored);
+}
+
+struct legacy_pic vmmcp_pic = {
+	.nr_legacy_irqs = 1,
+	.chip = &vmmcp_chip,
+	.mask = mask_vmmcp_irq,
+	.unmask = unmask_vmmcp_irq,
+	.mask_all = mask_vmmcp,
+	.restore_mask = unmask_vmmcp,
+	.init = init_vmmpic,
+	.irq_pending = vmmcp_irq_pending,
+	.make_irq = make_vmmcp_irq,
+};
+
+#endif
 struct legacy_pic default_legacy_pic = {
 	.nr_legacy_irqs = NR_IRQS_LEGACY,
 	.chip  = &i8259A_chip,
@@ -421,6 +543,13 @@ struct legacy_pic *legacy_pic = &default_legacy_pic;
 
 static int __init i8259A_init_ops(void)
 {
+#ifdef CONFIG_VMMCP8259
+	printk("----------------------------> %s:", __func__);
+	if (0) {
+		printk("Set legacy_pic to vmmcp_pic\n");
+		legacy_pic = &vmmcp_pic;
+	}
+#endif
 	if (legacy_pic == &default_legacy_pic)
 		register_syscore_ops(&i8259_syscore_ops);
 

@@ -1080,6 +1080,7 @@ char *__init default_machine_specific_memory_setup(void)
 		e820_add_region(0, 16*1048576, E820_RESERVED);
 		e820_add_region(16*1048576, 128*1048576, E820_RAM);
 		e820_add_region(4096*1048576, 2*1048576, E820_RAM);
+		e820_add_region(0xf0000000, 0x10000000, E820_RESERVED);
 
 #else
 		e820_add_region(0, LOWMEMSIZE(), E820_RAM);

@@ -158,12 +158,17 @@ config X86
 
 config VMMCP
 	bool "VMMCP"
-	# select OF
-	# select OF_EARLY_FLATTREE
 	select VIRTIO
 	default n
 	help
 		"Set true if you need an Akaros VMMCP kernel"
+
+config VMMCP8259
+	bool "VMMCP8259"
+	depends on VMMCP
+	default n
+	help
+		"Set true if you need an Akaros VMMCP 8259"
 
 config INSTRUCTION_DECODER
 	def_bool y

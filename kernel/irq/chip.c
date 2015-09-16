@@ -821,6 +821,9 @@ void
 irq_set_chip_and_handler_name(unsigned int irq, struct irq_chip *chip,
 			      irq_flow_handler_t handle, const char *name)
 {
+#ifdef CONFIG_VMMCP
+	printk("---------------> %s: (%d, %p, %s)\n", __func__, irq, chip, name);
+#endif
 	irq_set_chip(irq, chip);
 	__irq_set_handler(irq, handle, 0, name);
 }
