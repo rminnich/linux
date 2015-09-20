@@ -271,9 +271,12 @@ acpi_parse_lapic_addr_ovr(struct acpi_subtable_header * header,
 
 	lapic_addr_ovr = (struct acpi_madt_local_apic_override *)header;
 
-	if (BAD_MADT_ENTRY(lapic_addr_ovr, end))
+	if (BAD_MADT_ENTRY(lapic_addr_ovr, end)) {
+		printk("BAD MADRT ENTRY!\n");
 		return -EINVAL;
+	}
 
+	printk("OVERRIDING !\n", lapic_addr_ovr->address);
 	acpi_lapic_addr = lapic_addr_ovr->address;
 
 	return 0;

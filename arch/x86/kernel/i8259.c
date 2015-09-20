@@ -514,7 +514,7 @@ static void init_vmmpic(int ignored)
 }
 
 struct legacy_pic vmmcp_pic = {
-	.nr_legacy_irqs = 1,
+	.nr_legacy_irqs = 0,
 	.chip = &vmmcp_chip,
 	.mask = mask_vmmcp_irq,
 	.unmask = unmask_vmmcp_irq,
@@ -539,13 +539,14 @@ struct legacy_pic default_legacy_pic = {
 	.make_irq = make_8259A_irq,
 };
 
-struct legacy_pic *legacy_pic = &default_legacy_pic;
+//struct legacy_pic *legacy_pic = &default_legacy_pic;
+struct legacy_pic *legacy_pic = &vmmcp_pic;
 
 static int __init i8259A_init_ops(void)
 {
 #ifdef CONFIG_VMMCP8259
 	printk("----------------------------> %s:", __func__);
-	if (0) {
+	if (1) {
 		printk("Set legacy_pic to vmmcp_pic\n");
 		legacy_pic = &vmmcp_pic;
 	}

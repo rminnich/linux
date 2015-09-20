@@ -99,7 +99,7 @@ static acpi_status handle_ioapic_add(acpi_handle handle, u32 lvl,
 	struct pci_dev *dev = NULL;
 	struct resource *res = NULL;
 	char *type = NULL;
-
+printk("RRRRRRRRRRRRRRRRRRRRRRRRRRRRRR %s\n", __func__);
 	if (!acpi_is_ioapic(handle, &type))
 		return AE_OK;
 
@@ -111,6 +111,7 @@ static acpi_status handle_ioapic_add(acpi_handle handle, u32 lvl,
 		}
 
 	status = acpi_evaluate_integer(handle, "_GSB", NULL, &gsi_base);
+printk("_GSB %lld\n", gsi_base);
 	if (ACPI_FAILURE(status)) {
 		acpi_handle_warn(handle, "failed to evaluate _GSB method\n");
 		goto exit;
@@ -124,6 +125,7 @@ static acpi_status handle_ioapic_add(acpi_handle handle, u32 lvl,
 		ioapic->root_handle = (acpi_handle)context;
 		ioapic->handle = handle;
 		ioapic->gsi_base = (u32)gsi_base;
+printk("SET TO %d\n", (u32)gsi_base);
 		INIT_LIST_HEAD(&ioapic->list);
 	}
 
@@ -153,11 +155,12 @@ static acpi_status handle_ioapic_add(acpi_handle handle, u32 lvl,
 			goto exit_free;
 		}
 	}
-
+printk("register io apic\n");
 	if (acpi_register_ioapic(handle, res->start, (u32)gsi_base)) {
 		acpi_handle_warn(handle, "failed to register IOAPIC\n");
 		goto exit_release;
 	}
+printk("did it\n");
 done:
 	list_add(&ioapic->list, &ioapic_list);
 	mutex_unlock(&ioapic_list_lock);
