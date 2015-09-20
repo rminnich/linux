@@ -296,6 +296,7 @@ static irqreturn_t vm_interrupt(int irq, void *opaque)
 	unsigned long status;
 	unsigned long flags;
 	irqreturn_t ret = IRQ_NONE;
+printk("VM INTERRTU!!!!!\n");
 
 	/* Read and acknowledge interrupts */
 	status = readl(vm_dev->base + VIRTIO_MMIO_INTERRUPT_STATUS);
@@ -490,13 +491,13 @@ static int vm_find_vqs(struct virtio_device *vdev, unsigned nvqs,
 #ifdef CONFIG_VMMCP
 	printk("platofrm.get.irq is %d\n", irq);
 
-printk("rq %d %p %x %s %p\n", irq, vm_interrupt, 0&IRQF_SHARED,
+printk("rq %d %p %x %s %p\n", irq, vm_interrupt, IRQF_SHARED,
 				dev_name(&vdev->dev), vm_dev);
 #endif
-		err = request_irq(irq, vm_interrupt, 0&IRQF_SHARED,
+		err = request_irq(irq, vm_interrupt, IRQF_SHARED,
 				dev_name(&vdev->dev), vm_dev);
 		if (err) {
-#ifdef CONFIG_VMMCP
+#ifdef XXX_CONFIG_VMMCP
 			void make_vmmcp_irq(unsigned int irq);
 			make_vmmcp_irq(irq);
 			err = request_irq(irq, vm_interrupt, IRQF_SHARED,
