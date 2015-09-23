@@ -733,6 +733,12 @@ dotraplinkage void do_coprocessor_error(struct pt_regs *regs, long error_code)
 	math_error(regs, error_code, X86_TRAP_MF);
 }
 
+dotraplinkage void dvroom(struct pt_regs *regs, long error_code)
+{
+	void vroom(void);
+	vroom();
+}
+
 dotraplinkage void
 do_simd_coprocessor_error(struct pt_regs *regs, long error_code)
 {
@@ -857,6 +863,9 @@ void __init trap_init(void)
 	set_intr_gate_ist(X86_TRAP_MC, &machine_check, MCE_STACK);
 #endif
 	set_intr_gate(X86_TRAP_XF, simd_coprocessor_error);printk("	set_intr_gate(X86_TRAP_XF, simd_coprocessor_error);\n");
+#ifdef CONFIG_VMMCP
+	set_intr_gate(17, dvroom);printk("	set_intr_gate(17, dvroom);\n");
+#endif
 
 	/* Reserve all the builtin and the syscall vector: */
 	for (i = 0; i < FIRST_EXTERNAL_VECTOR; i++)

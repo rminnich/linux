@@ -22,6 +22,8 @@
 #include <asm/vsyscall.h>		/* emulate_vsyscall		*/
 #include <asm/vm86.h>			/* struct vm86			*/
 
+#include <asm/desc.h>
+
 #define CREATE_TRACE_POINTS
 #include <asm/trace/exceptions.h>
 
@@ -600,8 +602,9 @@ show_fault_oops(struct pt_regs *regs, unsigned long error_code,
 
 		pte = lookup_address_in_pgd(pgd, address, &level);
 
-		if (pte && pte_present(*pte) && !pte_exec(*pte))
+		if (pte && pte_present(*pte) && !pte_exec(*pte)) {
 			printk(nx_warning, from_kuid(&init_user_ns, current_uid()));
+		}
 		if (pte && pte_present(*pte) && pte_exec(*pte) &&
 				(pgd_flags(*pgd) & _PAGE_USER) &&
 				(__read_cr4() & X86_CR4_SMEP))
@@ -618,6 +621,23 @@ show_fault_oops(struct pt_regs *regs, unsigned long error_code,
 	printk(KERN_ALERT "IP:");
 	printk_address(regs->ip);
 
+struct desc_ptr dtr;
+native_store_idt(&dtr);
+printk("itd %lx 0x%x\n", dtr.address, dtr.size);
+{ int i; for(i = 0; i < 32; i++) {
+	uint8_t *cp = ((uint8_t *)dtr.address) + i*9;
+	printk("%08x: ", i);
+	int j; for(j = 0; j < 9; j++) printk("%02x ", cp[j]);
+	printk("\n");
+	}
+}
+{ int i; for(i = 0; i < 32; i++) {
+	uint8_t *cp = ((uint8_t *)early_idt_handler_array) + i*9;
+	printk("%08x: ", i);
+	int j; for(j = 0; j < 9; j++) printk("%02x ", cp[j]);
+	printk("\n");
+	}
+}
 	dump_pagetable(address);
 }
 

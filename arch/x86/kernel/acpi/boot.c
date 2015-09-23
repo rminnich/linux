@@ -276,7 +276,6 @@ acpi_parse_lapic_addr_ovr(struct acpi_subtable_header * header,
 		return -EINVAL;
 	}
 
-	printk("OVERRIDING !\n", lapic_addr_ovr->address);
 	acpi_lapic_addr = lapic_addr_ovr->address;
 
 	return 0;

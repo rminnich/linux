@@ -183,8 +183,8 @@ void fpu__init_cpu_xstate(void)
 
 	cr4_set_bits(X86_CR4_OSXSAVE);
 #if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
-	extern void v(char *);
-	v("NOT DOING xsetbv because we're not allowed to\n");
+	//extern void v(char *);
+	//v("NOT DOING xsetbv because we're not allowed to\n");
 #else
 	xsetbv(XCR_XFEATURE_ENABLED_MASK, xfeatures_mask);
 #endif

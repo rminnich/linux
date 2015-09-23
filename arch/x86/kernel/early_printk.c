@@ -97,12 +97,6 @@ static void early_vmcall_write(struct console *con, const char *str, unsigned n)
 		__asm__  __volatile__("movl %0, %%edi\nvmcall\n" :  : "m"(c));
 	}
 }
-void v(char *s)
-{
-	//early_vmcall_write(NULL, "---------------", 1024);
-	early_vmcall_write(NULL, s, 1024);
-}
-
 static struct console early_vmcall_console = {
 	.name =		"earlyvmcall",
 	.write =	early_vmcall_write,
@@ -466,7 +460,7 @@ static int __init setup_early_printk(char *buf)
 #endif
 #ifdef CONFIG_EARLY_PRINTK_VMCALL
 		if (!strncmp(buf, "vmcall", 4)) {
-			early_console_register(&early_vmcall_console, 1 || keep);
+			early_console_register(&early_vmcall_console, keep);
 		}
 #endif
 #ifdef CONFIG_HVC_XEN

@@ -220,6 +220,9 @@ static inline void native_load_gdt(const struct desc_ptr *dtr)
 
 static inline void native_load_idt(const struct desc_ptr *dtr)
 {
+#ifdef CONFIG_VMMCP
+early_printk("native load itd %p %lx 0x%x\n", dtr, dtr->address, dtr->size);
+#endif
 	asm volatile("lidt %0"::"m" (*dtr));
 }
 

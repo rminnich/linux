@@ -55,7 +55,6 @@ unsigned long io_apic_irqs;
 
 static void mask_8259A_irq(unsigned int irq)
 {
-	printk("%s\n", __func__);
 	unsigned int mask = 1 << irq;
 	unsigned long flags;
 
@@ -286,7 +285,6 @@ static struct syscore_ops i8259_syscore_ops = {
 
 static void mask_8259A(void)
 {
-	printk("%s\n", __func__);
 	unsigned long flags;
 
 	raw_spin_lock_irqsave(&i8259A_lock, flags);
@@ -299,7 +297,6 @@ static void mask_8259A(void)
 
 static void unmask_8259A(void)
 {
-	printk("%s\n", __func__);
 	unsigned long flags;
 
 	raw_spin_lock_irqsave(&i8259A_lock, flags);
@@ -312,7 +309,6 @@ static void unmask_8259A(void)
 
 static int probe_8259A(void)
 {
-	printk("%s\n", __func__);
 	unsigned long flags;
 	unsigned char probe_val = ~(1 << PIC_CASCADE_IR);
 	unsigned char new_val;
@@ -407,13 +403,6 @@ static int legacy_pic_probe(void)
 	return 0;
 }
 
-static int vmmcp_irq_pending(unsigned int irq)
-{
-	printk("%s %d just return 1;\n", __func__, irq);
-	return 1;
-}
-
-
 struct legacy_pic null_legacy_pic = {
 	.nr_legacy_irqs = 0,
 	.chip = &dummy_irq_chip,
@@ -482,6 +471,13 @@ static void mask_and_ack_vmmcp(struct irq_data *data)
 	printk("%s: IGNORING %d\n", __func__, data->irq);
 }
 
+static int vmmcp_irq_pending(unsigned int irq)
+{
+	printk("%s %d just return 1;\n", __func__, irq);
+	return 1;
+}
+
+
 struct irq_chip vmmcp_chip = {
 	.name		= "XT-PIC",
 	.irq_mask	= disable_vmmcp_irq,
@@ -540,7 +536,7 @@ struct legacy_pic default_legacy_pic = {
 };
 
 //struct legacy_pic *legacy_pic = &default_legacy_pic;
-struct legacy_pic *legacy_pic = &vmmcp_pic;
+struct legacy_pic *legacy_pic = &null_legacy_pic;
 
 static int __init i8259A_init_ops(void)
 {
