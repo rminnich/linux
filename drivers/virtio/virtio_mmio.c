@@ -288,7 +288,7 @@ static bool vm_notify(struct virtqueue *vq)
 }
 
 /* Notify all virtqueues on an interrupt. */
-static irqreturn_t vm_interrupt(int irq, void *opaque)
+irqreturn_t vm_interrupt(int irq, void *opaque)
 {
 	struct virtio_mmio_device *vm_dev = opaque;
 	struct virtio_mmio_vq_info *info;
@@ -299,6 +299,7 @@ printk("VM INTERRTU!!!!!\n");
 
 	/* Read and acknowledge interrupts */
 	status = readl(vm_dev->base + VIRTIO_MMIO_INTERRUPT_STATUS);
+printk("Status is 0x%x\n", status);
 	writel(status, vm_dev->base + VIRTIO_MMIO_INTERRUPT_ACK);
 
 	if (unlikely(status & VIRTIO_MMIO_INT_CONFIG)) {
@@ -306,12 +307,18 @@ printk("VM INTERRTU!!!!!\n");
 		ret = IRQ_HANDLED;
 	}
 
-	if (likely(status & VIRTIO_MMIO_INT_VRING)) {
+	if (1 || likely(status & VIRTIO_MMIO_INT_VRING)) {
+printk("vm_dev is %p\n", vm_dev);
 		spin_lock_irqsave(&vm_dev->lock, flags);
-		list_for_each_entry(info, &vm_dev->virtqueues, node)
+printk("locked\n");
+		list_for_each_entry(info, &vm_dev->virtqueues, node) {
+			printk("info %p vq %p\n", info, info->vq);
 			ret |= vring_interrupt(irq, info->vq);
+			printk("done interrupt\n");
+		}
 		spin_unlock_irqrestore(&vm_dev->lock, flags);
-	}
+printk("unlocked\n");
+	} else printk("NOTHING TO DO\n");
 
 	return ret;
 }
@@ -479,6 +486,14 @@ error_available:
 	return ERR_PTR(err);
 }
 
+static void *fuckme;
+static int fuckirq;
+
+void vroom(void)
+{
+	printk("VROOM ...");
+	vm_interrupt(fuckirq, fuckme);
+}
 static int vm_find_vqs(struct virtio_device *vdev, unsigned nvqs,
 		       struct virtqueue *vqs[],
 		       vq_callback_t *callbacks[],
@@ -495,6 +510,9 @@ printk("rq %d %p %x %s %p\n", irq, vm_interrupt, IRQF_SHARED,
 #endif
 		err = request_irq(irq, vm_interrupt, IRQF_SHARED,
 				dev_name(&vdev->dev), vm_dev);
+printk("vm_dev is %p\n", vm_dev);
+fuckme = vm_dev;
+fuckirq = irq;
 		if (err) {
 #ifdef XXX_CONFIG_VMMCP
 			void make_vmmcp_irq(unsigned int irq);
@@ -757,6 +775,11 @@ static struct platform_driver virtio_mmio_driver = {
 
 static int __init virtio_mmio_init(void)
 {
+#ifdef XCONFIG_VMMCP
+	printk("Set handler for IRQ 32\n");
+	void make_vmmcp_irq(unsigned int irq);
+	make_vmmcp_irq(32);
+#endif
 	return platform_driver_register(&virtio_mmio_driver);
 }
 

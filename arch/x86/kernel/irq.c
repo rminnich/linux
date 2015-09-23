@@ -215,7 +215,7 @@ __visible unsigned int __irq_entry do_IRQ(struct pt_regs *regs)
 	/* high bit used in ret_from_ code  */
 	unsigned vector = ~regs->orig_ax;
 	unsigned irq;
-
+pr_emerg("X");
 	entering_irq();
 
 	irq = __this_cpu_read(vector_irq[vector]);
