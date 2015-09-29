@@ -602,14 +602,24 @@ SYSCALL_DEFINE3(read, unsigned int, fd, char __user *, buf, size_t, count)
 {
 	struct fd f = fdget_pos(fd);
 	ssize_t ret = -EBADF;
+	extern int dienow;
+//void put64(uint64_t);
+//void hi(char *); hi("READ");put64(fd); hi(" "); put64((uint64_t)buf); hi(" "); put64(count);hi("\n");
+//if (! f.file) hi("NO FILE\n");
+
+//dienow = 1;
 
 	if (f.file) {
 		loff_t pos = file_pos_read(f.file);
+//hi("all vfs_ead\n");
 		ret = vfs_read(f.file, buf, count, &pos);
+//hi("ROK");
+//if (ret >= 0) hi("ret>=0"); else hi("RET < 0");
 		if (ret >= 0)
 			file_pos_write(f.file, pos);
 		fdput_pos(f);
 	}
+//hi("RR v "); put64(ret); hi("\n");
 	return ret;
 }
 
@@ -618,6 +628,7 @@ SYSCALL_DEFINE3(write, unsigned int, fd, const char __user *, buf,
 {
 	struct fd f = fdget_pos(fd);
 	ssize_t ret = -EBADF;
+//void hi(char *); hi("WRITE\n");
 
 	if (f.file) {
 		loff_t pos = file_pos_read(f.file);

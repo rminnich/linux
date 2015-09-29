@@ -296,11 +296,20 @@ irqreturn_t vm_interrupt(int irq, void *opaque)
 	unsigned long status;
 	unsigned long flags;
 	irqreturn_t ret = IRQ_NONE;
-printk("VM INTERRTU!!!!!\n");
+	uint32_t magic;
+	int i = 0;
+printk("VM INTERRTU!!!!! VTOP is 0x%p\n", (void *)(vmalloc_to_page(vm_dev->base)));
+
+	magic = readl(vm_dev->base + VIRTIO_MMIO_MAGIC_VALUE);
+	if (magic != ('v' | 'i' << 8 | 'r' << 16 | 't' << 24)) {
+		printk("Wrong magic value 0x%08x @ %p!\n", magic, vm_dev->base + VIRTIO_MMIO_MAGIC_VALUE);
+		return IRQ_HANDLED;
+	}
 
 	/* Read and acknowledge interrupts */
+printk("base %p\n", vm_dev->base);
 	status = readl(vm_dev->base + VIRTIO_MMIO_INTERRUPT_STATUS);
-printk("Status is 0x%x\n", status);
+printk("Status is 0x%lx\n", status);
 	writel(status, vm_dev->base + VIRTIO_MMIO_INTERRUPT_ACK);
 
 	if (unlikely(status & VIRTIO_MMIO_INT_CONFIG)) {
@@ -308,13 +317,15 @@ printk("Status is 0x%x\n", status);
 		ret = IRQ_HANDLED;
 	}
 
-	if (1 || likely(status & VIRTIO_MMIO_INT_VRING)) {
+	if (likely(status & VIRTIO_MMIO_INT_VRING)) {
 printk("vm_dev is %p\n", vm_dev);
 		spin_lock_irqsave(&vm_dev->lock, flags);
 printk("locked\n");
 		list_for_each_entry(info, &vm_dev->virtqueues, node) {
 			printk("info %p vq %p\n", info, info->vq);
-			ret |= vring_interrupt(irq, info->vq);
+			if (i == 0) printk("ZERO!\n");
+			ret |= vring_interrupt(i++, info->vq);
+			if (i == 1) printk("DONE ZERO!\n");
 			printk("done interrupt\n");
 		}
 		spin_unlock_irqrestore(&vm_dev->lock, flags);
@@ -503,6 +514,7 @@ static int vm_find_vqs(struct virtio_device *vdev, unsigned nvqs,
 	struct virtio_mmio_device *vm_dev = to_virtio_mmio_device(vdev);
 	unsigned int irq = platform_get_irq(vm_dev->pdev, 0);
 	int i, err;
+printk("vdev %p nvqs %d\n", vdev, nvqs);
 #ifdef CONFIG_VMMCP
 	printk("platofrm.get.irq is %d\n", irq);
 
@@ -588,7 +600,8 @@ static int virtio_mmio_probe(struct platform_device *pdev)
 	vm_dev->base = devm_ioremap(&pdev->dev, mem->start, resource_size(mem));
 	if (vm_dev->base == NULL)
 		return -EFAULT;
-
+printk("----------> memstart %p  vm_dev->base %p", (void *)mem->start, vm_dev->base);
+printk(" VTOP is 0x%p\n", (void *) (vmalloc_to_page(vm_dev->base)));
 	/* Check magic value */
 	magic = readl(vm_dev->base + VIRTIO_MMIO_MAGIC_VALUE);
 	if (magic != ('v' | 'i' << 8 | 'r' << 16 | 't' << 24)) {
@@ -785,16 +798,13 @@ static struct platform_driver virtio_mmio_driver = {
 
 static int __init virtio_mmio_init(void)
 {
-#ifdef XCONFIG_VMMCP
-	printk("Set handler for IRQ 32\n");
-	void make_vmmcp_irq(unsigned int irq);
-	make_vmmcp_irq(32);
-#endif
+printk("VIRTIO MMIO ENTER!\n");
 	return platform_driver_register(&virtio_mmio_driver);
 }
 
 static void __exit virtio_mmio_exit(void)
 {
+printk("VIRTIO MMIO EXIT!\n");
 	platform_driver_unregister(&virtio_mmio_driver);
 	vm_unregister_cmdline_devices();
 }

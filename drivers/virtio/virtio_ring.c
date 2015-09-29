@@ -24,7 +24,7 @@
 #include <linux/module.h>
 #include <linux/hrtimer.h>
 #include <linux/kmemleak.h>
-
+#define DEBUG
 #ifdef DEBUG
 /* For development, we want to crash whenever the ring is screwed. */
 #define BAD_RING(_vq, fmt, args...)				\
@@ -453,8 +453,12 @@ static void detach_buf(struct vring_virtqueue *vq, unsigned int head)
 	vq->vq.num_free++;
 }
 
+int print = 0;
+		void hi(char *);
 static inline bool more_used(const struct vring_virtqueue *vq)
 {
+	if (print) early_printk("%p: more used: last used idx is %d, other is %d\n", vq, 
+	vq->last_used_idx , virtio16_to_cpu(vq->vq.vdev, vq->vring.used->idx));
 	return vq->last_used_idx != virtio16_to_cpu(vq->vq.vdev, vq->vring.used->idx);
 }
 
@@ -480,10 +484,11 @@ void *virtqueue_get_buf(struct virtqueue *_vq, unsigned int *len)
 	void *ret;
 	unsigned int i;
 	u16 last_used;
-
+if (print) hi("GET USED\n");
 	START_USE(vq);
 
 	if (unlikely(vq->broken)) {
+if (print)hi("BROKEN\n");
 		END_USE(vq);
 		return NULL;
 	}
@@ -705,19 +710,28 @@ EXPORT_SYMBOL_GPL(virtqueue_detach_unused_buf);
 
 irqreturn_t vring_interrupt(int irq, void *_vq)
 {
+#ifdef CONFIG_VMMCP
+#endif
 	struct vring_virtqueue *vq = to_vvq(_vq);
-
+	//if (! irq ) hi ("INTR\n");
+	//print = ! irq;
 	if (!more_used(vq)) {
+		if (! irq) hi("NOT MORE USED\n");
 		pr_debug("virtqueue interrupt with no work for %p\n", vq);
 		return IRQ_NONE;
 	}
-
+	//if (! irq) hi("MORE USED\n");
+	//if (vq->broken) hi("VQ BROKEN!!!!\n");
 	if (unlikely(vq->broken))
 		return IRQ_HANDLED;
 
 	pr_debug("virtqueue callback for %p (%p)\n", vq, vq->vq.callback);
-	if (vq->vq.callback)
+	if (vq->vq.callback) {
+		//if (! irq) hi("X");
+		//if (! irq) early_printk("CALLBACK ... %p\n", vq->vq.callback);
+		//else
 		vq->vq.callback(&vq->vq);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -869,4 +883,3 @@ void *virtqueue_get_used(struct virtqueue *_vq)
 }
 EXPORT_SYMBOL_GPL(virtqueue_get_used);
 
-MODULE_LICENSE("GPL");
