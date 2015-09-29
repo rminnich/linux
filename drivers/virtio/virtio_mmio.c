@@ -291,6 +291,8 @@ static bool vm_notify(struct virtqueue *vq)
 /* Notify all virtqueues on an interrupt. */
 irqreturn_t vm_interrupt(int irq, void *opaque)
 {
+#ifdef CONFIG_VMMCP
+#endif
 	struct virtio_mmio_device *vm_dev = opaque;
 	struct virtio_mmio_vq_info *info;
 	unsigned long status;
@@ -298,7 +300,7 @@ irqreturn_t vm_interrupt(int irq, void *opaque)
 	irqreturn_t ret = IRQ_NONE;
 	uint32_t magic;
 	int i = 0;
-printk("VM INTERRTU!!!!! VTOP is 0x%p\n", (void *)(vmalloc_to_page(vm_dev->base)));
+	if (0)printk("VM INTERRTU!!!!! VTOP is 0x%p\n", (void *)(vmalloc_to_page(vm_dev->base)));
 
 	magic = readl(vm_dev->base + VIRTIO_MMIO_MAGIC_VALUE);
 	if (magic != ('v' | 'i' << 8 | 'r' << 16 | 't' << 24)) {
@@ -307,9 +309,9 @@ printk("VM INTERRTU!!!!! VTOP is 0x%p\n", (void *)(vmalloc_to_page(vm_dev->base)
 	}
 
 	/* Read and acknowledge interrupts */
-printk("base %p\n", vm_dev->base);
+	if (0)printk("base %p\n", vm_dev->base);
 	status = readl(vm_dev->base + VIRTIO_MMIO_INTERRUPT_STATUS);
-printk("Status is 0x%lx\n", status);
+	if (0)printk("Status is 0x%lx\n", status);
 	writel(status, vm_dev->base + VIRTIO_MMIO_INTERRUPT_ACK);
 
 	if (unlikely(status & VIRTIO_MMIO_INT_CONFIG)) {
@@ -318,18 +320,18 @@ printk("Status is 0x%lx\n", status);
 	}
 
 	if (likely(status & VIRTIO_MMIO_INT_VRING)) {
-printk("vm_dev is %p\n", vm_dev);
+	if (0)printk("vm_dev is %p\n", vm_dev);
 		spin_lock_irqsave(&vm_dev->lock, flags);
-printk("locked\n");
+	if (0)printk("locked\n");
 		list_for_each_entry(info, &vm_dev->virtqueues, node) {
-			printk("info %p vq %p\n", info, info->vq);
-			if (i == 0) printk("ZERO!\n");
+			if (0) printk("info %p vq %p\n", info, info->vq);
+			if (0 && i == 0) printk("ZERO!\n");
 			ret |= vring_interrupt(i++, info->vq);
-			if (i == 1) printk("DONE ZERO!\n");
-			printk("done interrupt\n");
+			if (0 && i == 1) printk("DONE ZERO!\n");
+			if (0) printk("done interrupt\n");
 		}
 		spin_unlock_irqrestore(&vm_dev->lock, flags);
-printk("unlocked\n");
+	if (0)printk("unlocked\n");
 	} else printk("NOTHING TO DO\n");
 
 	return ret;
