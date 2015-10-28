@@ -347,7 +347,7 @@ CONFIG_PHYSICAL_START=0x1200000
 # CONFIG_RELOCATABLE is not set
 CONFIG_PHYSICAL_ALIGN=0x200000
 CONFIG_CMDLINE_BOOL=y
-CONFIG_CMDLINE="earlyprintk=vmcall,keep console=hvc0 virtio_mmio.device=1M@0x100000000:32 maxcpus=1 acpi.debug_layer=0x2 acpi.debug_level=0xffffffff apic=debug noexec=off nohlt"
+CONFIG_CMDLINE="earlyprintk=vmcall console=hvc0 virtio_mmio.device=1M@0x100000000:32 maxcpus=1 acpi.debug_layer=0x2 acpi.debug_level=0xffffffff apic=debug noexec=off nohlt init=/bin/busybox"
 CONFIG_CMDLINE_OVERRIDE=y
 CONFIG_HAVE_LIVEPATCH=y
 CONFIG_ARCH_ENABLE_MEMORY_HOTPLUG=y
