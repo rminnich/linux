@@ -1799,7 +1799,6 @@ int apic_version[MAX_LOCAL_APIC];
 static inline void __smp_spurious_interrupt(u8 vector)
 {
 	u32 v;
-	void vroom(void);
 
 	/*
 	 * Check if this really is a spurious interrupt and ACK it
@@ -1815,7 +1814,14 @@ static inline void __smp_spurious_interrupt(u8 vector)
 	/* see sw-dev-man vol 3, chapter 7.4.13.5 */
 	pr_info("spurious APIC interrupt through vector %02x on CPU#%d, "
 		"should never happen.\n", vector, smp_processor_id());
-	vroom();
+
+	v = apic_read(0x280);
+	// CRAZY IDEA HERE.
+	//apic_write(0xF0, 0x01E5);
+	pr_info("APIC errors: 0x%08x\n", v);
+
+	//vroom();
+	//BUG();
 }
 
 __visible void smp_spurious_interrupt(struct pt_regs *regs)

@@ -695,7 +695,7 @@ irqreturn_t vring_interrupt(int irq, void *_vq)
 	//if (! irq ) hi ("INTR\n");
 	//print = ! irq;
 	if (!more_used(vq)) {
-		if (! irq) hi("NOT MORE USED\n");
+		//if (! irq) hi("NOT MORE USED\n");
 		pr_debug("virtqueue interrupt with no work for %p\n", vq);
 		return IRQ_NONE;
 	}

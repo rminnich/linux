@@ -310,6 +310,8 @@ irqreturn_t vm_interrupt(int irq, void *opaque)
 	/* Read and acknowledge interrupts */
 	if (0)printk("base %p\n", vm_dev->base);
 	status = readl(vm_dev->base + VIRTIO_MMIO_INTERRUPT_STATUS);
+
+	if (0)printk("ADDRESS: 0x%p", vm_dev->base + VIRTIO_MMIO_INTERRUPT_STATUS);
 	if (0)printk("Status is 0x%lx\n", status);
 	writel(status, vm_dev->base + VIRTIO_MMIO_INTERRUPT_ACK);
 
@@ -319,9 +321,9 @@ irqreturn_t vm_interrupt(int irq, void *opaque)
 	}
 
 	if (likely(status & VIRTIO_MMIO_INT_VRING)) {
-	if (0)printk("vm_dev is %p\n", vm_dev);
+		if (0)printk("vm_dev is %p\n", vm_dev);
 		spin_lock_irqsave(&vm_dev->lock, flags);
-	if (0)printk("locked\n");
+		if (0)printk("locked\n");
 		list_for_each_entry(info, &vm_dev->virtqueues, node) {
 			if (0) printk("info %p vq %p\n", info, info->vq);
 			if (0 && i == 0) printk("ZERO!\n");
@@ -504,7 +506,7 @@ static int fuckirq;
 
 void vroom(void)
 {
-	printk("VROOM ...");
+	//printk("VROOM ...");
 	vm_interrupt(fuckirq, fuckme);
 }
 static int vm_find_vqs(struct virtio_device *vdev, unsigned nvqs,

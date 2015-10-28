@@ -30,6 +30,8 @@ EXPORT_PER_CPU_SYMBOL(irq_regs);
 
 atomic_t irq_err_count;
 
+void vroom(void);
+
 /* Function pointer for generic interrupt vector handling */
 void (*x86_platform_ipi_callback)(void) = NULL;
 
@@ -215,7 +217,7 @@ __visible unsigned int __irq_entry do_IRQ(struct pt_regs *regs)
 	/* high bit used in ret_from_ code  */
 	unsigned vector = ~regs->orig_ax;
 	unsigned irq;
-pr_emerg("X");
+pr_emerg("XIRQ");
 	entering_irq();
 
 	irq = __this_cpu_read(vector_irq[vector]);
@@ -259,6 +261,27 @@ __visible void smp_x86_platform_ipi(struct pt_regs *regs)
 	set_irq_regs(old_regs);
 }
 
+#ifdef CONFIG_VMMCP
+
+/*
+ * Handler for VMMCP_POSTED_INTERRUPT_VECTOR.
+ */
+__visible void smp_vmmcp_posted_intr_ipi(struct pt_regs *regs)
+{
+	struct pt_regs *old_regs = set_irq_regs(regs);
+	uint64_t x;
+	//printk("<IAMHERE>\n");
+	entering_ack_irq();
+	inc_irq_stat(vmmcp_posted_intr_ipis);
+	exiting_irq();
+	set_irq_regs(old_regs);
+	//rdmsrl(0x1b, x);
+	//printk("MSR 0x1b: %llx", x);
+	vroom();
+}
+
+#endif
+
 #ifdef CONFIG_HAVE_KVM
 static void dummy_handler(void) {}
 static void (*kvm_posted_intr_wakeup_handler)(void) = dummy_handler;
@@ -279,6 +302,7 @@ __visible void smp_kvm_posted_intr_ipi(struct pt_regs *regs)
 {
 	struct pt_regs *old_regs = set_irq_regs(regs);
 
+	//printk("<KVMHERE>\n");
 	entering_ack_irq();
 	inc_irq_stat(kvm_posted_intr_ipis);
 	exiting_irq();

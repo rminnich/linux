@@ -98,6 +98,9 @@ static inline void native_apic_mem_write(u32 reg, u32 v)
 
 static inline u32 native_apic_mem_read(u32 reg)
 {
+	/*if(reg == 0) {
+		panic("READING APIC REG 0");
+	}*/
 	return *((volatile u32 *)(APIC_BASE + reg));
 }
 
@@ -397,6 +400,9 @@ static inline void apic_write(u32 reg, u32 val)
 static inline void apic_eoi(void)
 {
 	apic->eoi_write(APIC_EOI, APIC_EOI_ACK);
+	//printk("%s: eoi_write function is at %p\n", __func__, apic->eoi_write);
+	//apic->icr_write(0xDEADBEEF, 0);
+	//printk("ICR READ: 0x%llx\n", (long long unsigned int)apic->icr_read());
 }
 
 static inline u64 apic_icr_read(void)

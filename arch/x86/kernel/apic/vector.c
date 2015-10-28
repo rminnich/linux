@@ -651,9 +651,17 @@ static void __init print_local_APIC(void *dummy)
 	ver = GET_APIC_VERSION(v);
 	maxlvt = lapic_get_maxlvt();
 
+	pr_info("ERROR IS NOT HEREEEEEE1");
+	// Dump APIC
+	/*for (i = 0; i<4096; i+=16){
+		v = apic_read(i);
+		pr_info("Location %x: 0x%08x", i, v);
+	}*/
+
 	v = apic_read(APIC_TASKPRI);
 	pr_debug("... APIC TASKPRI: %08x (%02x)\n", v, v & APIC_TPRI_MASK);
 
+	pr_info("ERROR IS NOT HEREEEEEE2");
 	/* !82489DX */
 	if (APIC_INTEGRATED(ver)) {
 		if (!APIC_XAPIC(ver)) {
@@ -665,6 +673,7 @@ static void __init print_local_APIC(void *dummy)
 		pr_debug("... APIC PROCPRI: %08x\n", v);
 	}
 
+	pr_info("ERROR IS NOT HEREEEEEE3");
 	/*
 	 * Remote read supported only in the 82489DX and local APIC for
 	 * Pentium processors.
@@ -674,6 +683,7 @@ static void __init print_local_APIC(void *dummy)
 		pr_debug("... APIC RRR: %08x\n", v);
 	}
 
+	pr_info("ERROR IS NOT HEREEEEEE4");
 	v = apic_read(APIC_LDR);
 	pr_debug("... APIC LDR: %08x\n", v);
 	if (!x2apic_enabled()) {
@@ -690,6 +700,7 @@ static void __init print_local_APIC(void *dummy)
 	pr_debug("... APIC IRR field:\n");
 	print_APIC_field(APIC_IRR);
 
+	pr_info("ERROR IS NOT HEREEEEEE5");
 	/* !82489DX */
 	if (APIC_INTEGRATED(ver)) {
 		/* Due to the Pentium erratum 3AP. */

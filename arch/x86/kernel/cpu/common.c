@@ -764,7 +764,7 @@ void __init early_cpu_init(void)
 	int count = 0;
 #ifdef XCONFIG_VMMCP
 	extern void vmcall_console(void);
-	vmcall_console();
+	//vmcall_console();
 #endif
 
 #ifdef CONFIG_PROCESSOR_SELECT
