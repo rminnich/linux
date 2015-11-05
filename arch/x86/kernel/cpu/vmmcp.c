@@ -225,7 +225,7 @@ static void vmmcp_set_cpu_features(struct cpuinfo_x86 *c)
 /* Checks if hypervisor supports x2apic without VT-D interrupt remapping. */
 static bool __init vmmcp_legacy_x2apic_available(void)
 {
-	return false;
+	return true;
 }
 
 const __refconst struct hypervisor_x86 x86_hyper_vmmcp = {
