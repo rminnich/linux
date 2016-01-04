@@ -92,32 +92,6 @@ static void vmmcp_disable_irq(struct pci_dev *dev)
 }
 #endif
 /*
- * This sets up the Interrupt Descriptor Table (IDT) entry for each hardware
- * interrupt (except 128, which is used for system calls), and then tells the
- * Linux infrastructure that each interrupt is controlled by our level-based
- * vmmcp interrupt controller.
- */
-static void __init vmmcp_init_IRQ(void)
-{
-	unsigned int i;
-
-	for (i = FIRST_EXTERNAL_VECTOR; i < FIRST_SYSTEM_VECTOR; i++) {
-		printk("%s: grab irq %d\n", __func__, i);
-		/* Some systems map "vectors" to interrupts weirdly.  Not us! */
-		__this_cpu_write(vector_irq[i], i - FIRST_EXTERNAL_VECTOR);
-		if (i != IA32_SYSCALL_VECTOR)
-			set_intr_gate(i, irq_entries_start +
-					8 * (i - FIRST_EXTERNAL_VECTOR));
-	}
-
-	/*
-	 * This call is required to set up for 4k stacks, where we have
-	 * separate stacks for hard and soft interrupts.
-	 */
-	irq_ctx_init(smp_processor_id());
-}
-
-/*
  * Interrupt descriptors are allocated as-needed, but low-numbered ones are
  * reserved by the generic x86 code.  So we ignore irq_alloc_desc_at if it
  * tells us the irq is already used: other errors (ie. ENOMEM) we take
@@ -138,55 +112,6 @@ int vmmcp_setup_irq(unsigned int irq)
 				      handle_level_irq, "level");
 	return 0;
 }
-
-static void lguest_apic_write(u32 reg, u32 v)
-{
-	printk("%s: MIRACLE\n", __func__);
-}
-
-static u32 lguest_apic_read(u32 reg)
-{
-	printk("%s: MIRACLE\n", __func__);
-	return 0;
-}
-
-static u64 lguest_apic_icr_read(void)
-{
-	printk("%s: MIRACLE\n", __func__);
-	return 0;
-}
-
-static void lguest_apic_icr_write(u32 low, u32 id)
-{
-	printk("%s: MIRACLE\n", __func__);
-	/* Warn to see if there's any stray references */
-	WARN_ON(1);
-}
-
-static void lguest_apic_wait_icr_idle(void)
-{
-	printk("%s: MIRACLE\n", __func__);
-	return;
-}
-
-static u32 lguest_apic_safe_wait_icr_idle(void)
-{
-	printk("%s: MIRACLE\n", __func__);
-	return 0;
-}
-
-static void set_lguest_basic_apic_ops(void)
-{
-	printk("%s: MIRACLE\n", __func__);
-	apic->read = lguest_apic_read;
-	apic->write = lguest_apic_write;
-	apic->icr_read = lguest_apic_icr_read;
-	apic->icr_write = lguest_apic_icr_write;
-	apic->wait_icr_idle = lguest_apic_wait_icr_idle;
-	apic->safe_wait_icr_idle = lguest_apic_safe_wait_icr_idle;
-}
-
-// FROM LGUEST
 
 static inline int __vmmcp_platform(void)
 {

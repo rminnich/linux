@@ -887,9 +887,8 @@ printk("done for\n");
 	 * "sidt" instruction will not leak the location of the kernel, and
 	 * to defend the IDT against arbitrary memory write vulnerabilities.
 	 * It will be reloaded in cpu_init() */
-printk("SET IDT\n");
-printk("__set_fixmap(0x%lx, 0x%x, 0x%lx);\n", FIX_RO_IDT, __pa_symbol(idt_table), PAGE_KERNEL_RO);
-	__set_fixmap(FIX_RO_IDT, __pa_symbol(idt_table), PAGE_KERNEL_RO);printk("	__set_fixmap(FIX_RO_IDT, __pa_symbol(idt_table), PAGE_KERNEL_RO);\n");
+	__set_fixmap(FIX_RO_IDT, __pa_symbol(idt_table), PAGE_KERNEL_RO);
+
 	idt_descr.address = fix_to_virt(FIX_RO_IDT);printk("	idt_descr.address = fix_to_virt(FIX_RO_IDT);\n");
 
 	/*

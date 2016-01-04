@@ -602,7 +602,7 @@ SYSCALL_DEFINE3(read, unsigned int, fd, char __user *, buf, size_t, count)
 {
 	struct fd f = fdget_pos(fd);
 	ssize_t ret = -EBADF;
-	extern int dienow;
+//	extern int dienow;
 //void put64(uint64_t);
 //void hi(char *); hi("READ");put64(fd); hi(" "); put64((uint64_t)buf); hi(" "); put64(count);hi("\n");
 //if (! f.file) hi("NO FILE\n");

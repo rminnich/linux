@@ -621,6 +621,7 @@ show_fault_oops(struct pt_regs *regs, unsigned long error_code,
 	printk(KERN_ALERT "IP:");
 	printk_address(regs->ip);
 
+#if 0 && CONFIG_VMMCP
 struct desc_ptr dtr;
 native_store_idt(&dtr);
 printk("itd %lx 0x%x\n", dtr.address, dtr.size);
@@ -638,6 +639,7 @@ printk("itd %lx 0x%x\n", dtr.address, dtr.size);
 	printk("\n");
 	}
 }
+#endif
 	dump_pagetable(address);
 }
 

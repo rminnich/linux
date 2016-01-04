@@ -1032,7 +1032,7 @@ static noinline void __init kernel_init_freeable(void)
 	if (!ramdisk_execute_command)
 		ramdisk_execute_command = "/init";
 
-	printk("sys access for %s is %d\n", ramdisk_execute_command, sys_access((const char __user *) ramdisk_execute_command, 0));
+	printk("sys access for %s is %ld\n", ramdisk_execute_command, sys_access((const char __user *) ramdisk_execute_command, 0));
 	if (sys_access((const char __user *) ramdisk_execute_command, 0) != 0) {
 		ramdisk_execute_command = NULL;
 		prepare_namespace();

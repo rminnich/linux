@@ -34,6 +34,10 @@ static void fnop(void) {
 	printk("vmmcp NOP\n");
 }
 
+static void fnoparg(unsigned int i) {
+	printk("vmmcp fnoparg %d\n", i);
+}
+
 /*
  * The platform setup functions are preset with the default functions
  * for standard PC hardware.
@@ -53,7 +57,7 @@ struct x86_init_ops x86_init __initdata = {
 		.smp_read_mpc_oem	= default_smp_read_mpc_oem,
 		.mpc_oem_bus_info	= default_mpc_oem_bus_info,
 		.find_smp_config	= fnop,
-		.get_smp_config		= fnop,
+		.get_smp_config		= fnoparg,
 	},
 
 	.irqs = {
