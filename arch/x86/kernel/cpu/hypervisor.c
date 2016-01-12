@@ -52,13 +52,8 @@ detect_hypervisor_vendor(void)
 	for (p = hypervisors; p < hypervisors + ARRAY_SIZE(hypervisors); p++) {
 		h = *p;
 		pri = h->detect();
-#ifdef CONFIG_VMMCP
-		printk("%s scores %d; \n", h->name, pri);
-#endif
+
 		if (pri != 0 && pri > max_pri) {
-#ifdef CONFIG_VMMCP
-			printk("%s is highest score so far\n", h->name);
-#endif
 			max_pri = pri;
 			x86_hyper = h;
 		}
