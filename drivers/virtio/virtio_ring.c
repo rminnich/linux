@@ -450,7 +450,7 @@ int print = 0;
 		void hi(char *);
 static inline bool more_used(const struct vring_virtqueue *vq)
 {
-	if (print) early_printk("%p: more used: last used idx is %d, other is %d\n", vq, 
+	if (print) early_printk("%p: more used: last used idx is %d, other is %d\n", vq,
 	vq->last_used_idx , virtio16_to_cpu(vq->vq.vdev, vq->vring.used->idx));
 	return vq->last_used_idx != virtio16_to_cpu(vq->vq.vdev, vq->vring.used->idx);
 }
@@ -689,8 +689,6 @@ EXPORT_SYMBOL_GPL(virtqueue_detach_unused_buf);
 
 irqreturn_t vring_interrupt(int irq, void *_vq)
 {
-#ifdef CONFIG_VMMCP
-#endif
 	struct vring_virtqueue *vq = to_vvq(_vq);
 	//if (! irq ) hi ("INTR\n");
 	//print = ! irq;
