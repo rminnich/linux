@@ -1376,12 +1376,7 @@ void __init print_IO_APICs(void)
 	printk(KERN_INFO ".................................... done.\n");
 }
 
-/* Where if anywhere is the i8259 connect in external int mode */
-//#ifdef CONFIG_VMMCP8259
-//static struct { int pin, apic; } ioapic_i8259 = { 0, 0 };
-//#else
 static struct { int pin, apic; } ioapic_i8259 = { -1, -1 };
-//#endif
 
 void __init enable_IO_APIC(void)
 {
