@@ -30,7 +30,7 @@ void wave(int c)
 	__asm__  __volatile__("movl %0, %%edi\nvmcall\n" :  : "m"(c));
 }
 
-void hi(char *s) 
+void hi(char *s)
 {
 	if (! s)
 		s = "<NULL>";
@@ -39,14 +39,14 @@ void hi(char *s)
 }
 
 /*
- * for gdb: 
- * call this anywhere in your code. 
+ * for gdb:
+ * call this anywhere in your code.
  *   die("yourturn with gdb\n");
  *   gdb 9k
  *   target remote localhost:1234
  *   display/i $pc
  *   set staydead = 0
- *   stepi, and debug. 
+ *   stepi, and debug.
  * note, you can always resume after a die. Just set staydead = 0
  */
 
