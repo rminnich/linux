@@ -107,7 +107,7 @@ again:
 	return 0;
 }
 
-/* Don't add a printk in there. printk relies on the PDA which is not initialized 
+/* Don't add a printk in there. printk relies on the PDA which is not initialized
    yet. */
 static void __init clear_bss(void)
 {
@@ -129,9 +129,6 @@ static void __init copy_bootdata(char *real_mode_data)
 	char * command_line;
 	unsigned long cmd_line_ptr;
 
-#if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
-	return;
-#endif
 	memcpy(&boot_params, real_mode_data, sizeof boot_params);
 	sanitize_boot_params(&boot_params);
 	cmd_line_ptr = get_cmd_line_ptr();
@@ -191,11 +188,11 @@ asmlinkage __visible void __init x86_64_start_kernel(char * real_mode_data)
 
 void __init x86_64_start_reservations(char *real_mode_data)
 {
-#if !defined(CONFIG_VMMCP) || CONFIG_VMMCP==0
 	/* version is always not zero if it is copied */
 	if (!boot_params.hdr.version)
 		copy_bootdata(__va(real_mode_data));
 
+#if !defined(CONFIG_VMMCP) || CONFIG_VMMCP==0
 	reserve_ebda_region();
 #endif
 
