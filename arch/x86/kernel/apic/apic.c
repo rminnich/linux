@@ -537,6 +537,7 @@ static void setup_APIC_timer(void)
 		lapic_clockevent.features &= ~CLOCK_EVT_FEAT_C3STOP;
 		/* Make LAPIC timer preferrable over percpu HPET */
 		lapic_clockevent.rating = 150;
+		pr_info("TIMER: ARAT\n");
 	}
 
 	memcpy(levt, &lapic_clockevent, sizeof(*levt));
@@ -549,6 +550,7 @@ static void setup_APIC_timer(void)
 		clockevents_config_and_register(levt,
 						(tsc_khz / TSC_DIVISOR) * 1000,
 						0xF, ~0UL);
+		pr_info("TIMER: TSC_DEADLINE_TIMER\n");
 	} else
 		clockevents_register_device(levt);
 }
@@ -663,6 +665,14 @@ calibrate_by_pmtimer(long deltapm, long *delta, long *deltatsc)
 
 	return 0;
 }
+
+static int __init lapictimerfreq(char *str)
+{
+	get_option(&str, &lapic_timer_frequency);
+	return 0;
+}
+
+early_param("lapictimerfreq", lapictimerfreq);
 
 static int __init calibrate_APIC_clock(void)
 {
