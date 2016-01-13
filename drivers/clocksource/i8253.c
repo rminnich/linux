@@ -100,6 +100,18 @@ int __init clocksource_i8253_init(void)
 #endif
 
 #ifdef CONFIG_CLKEVT_I8253
+
+static int pit_enabled = 1;
+static int __init parse_pit(char *str)
+{
+	if (!strcmp(str, "none")) {
+		pit_enabled = 0;
+	}
+	return 0;
+}
+early_param("pit", parse_pit);
+
+
 /*
  * Initialize the PIT timer.
  *
@@ -108,9 +120,10 @@ int __init clocksource_i8253_init(void)
 static void init_pit_timer(enum clock_event_mode mode,
 			   struct clock_event_device *evt)
 {
-#ifdef CONFIG_VMMCP
-	return;
-#endif
+	if (!pit_enabled) {
+		return;
+	}
+
 	raw_spin_lock(&i8253_lock);
 
 	switch (mode) {
