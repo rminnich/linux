@@ -290,8 +290,6 @@ static bool vm_notify(struct virtqueue *vq)
 /* Notify all virtqueues on an interrupt. */
 irqreturn_t vm_interrupt(int irq, void *opaque)
 {
-#ifdef CONFIG_VMMCP
-#endif
 	struct virtio_mmio_device *vm_dev = opaque;
 	struct virtio_mmio_vq_info *info;
 	unsigned long status;

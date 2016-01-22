@@ -762,10 +762,6 @@ void __init early_cpu_init(void)
 {
 	const struct cpu_dev *const *cdev;
 	int count = 0;
-#ifdef XCONFIG_VMMCP
-	extern void vmcall_console(void);
-	//vmcall_console();
-#endif
 
 #ifdef CONFIG_PROCESSOR_SELECT
 	printk(KERN_INFO "KERNEL supported cpus:\n");
