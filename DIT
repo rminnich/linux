@@ -1,4 +1,4 @@
- ARCH=x86_64 make vmlinux
+ ARCH=x86_64 make -j vmlinux
  objcopy -O binary vmlinux xxx
  cp xxx ../akaros/kern/kfs/
 objdump -S -d vmlinux > vmlinux.asm

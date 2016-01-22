@@ -30,7 +30,7 @@ void wave(int c)
 	__asm__  __volatile__("movl %0, %%edi\nvmcall\n" :  : "m"(c));
 }
 
-void hi(char *s) 
+void hi(char *s)
 {
 	if (! s)
 		s = "<NULL>";

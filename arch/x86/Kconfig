@@ -163,20 +163,6 @@ config VMMCP
 	help
 		"Set true if you need an Akaros VMMCP kernel"
 
-config VMMCP8259
-	bool "VMMCP8259"
-	depends on VMMCP
-	default n
-	help
-		"Set true if you need an Akaros VMMCP 8259"
-
-config VMMCP_CONSOLE
-	bool "VMMCP_CONSOLE"
-	depends on VMMCP
-	default n
-	help
-		"Set true if you need an VMCALL CONSOLE. Try to use virtio_mmio instead"
-
 config INSTRUCTION_DECODER
 	def_bool y
 	depends on KPROBES || PERF_EVENTS || UPROBES

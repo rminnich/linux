@@ -191,16 +191,6 @@ void fpu__init_cpu_xstate(void)
 }
 
 /*
- * Note that in the future we will likely need a pair of
- * functions here: one for user xstates and the other for
- * system xstates.  For now, they are the same.
- */
-static int xfeature_enabled(enum xfeature xfeature)
-{
-	return !!(xfeatures_mask & (1UL << xfeature));
-}
-
-/*
  * Record the offsets and sizes of various xstates contained
  * in the XSAVE state memory layout.
  */

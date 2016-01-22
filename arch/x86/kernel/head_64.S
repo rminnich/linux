@@ -270,12 +270,12 @@ ENTRY(secondary_startup_64)
 	movl	$MSR_GS_BASE,%ecx
 	movl	initial_gs(%rip),%eax
 	movl	initial_gs+4(%rip),%edx
-	wrmsr	
+	wrmsr
 
 	/* rsi is pointer to real mode structure with interesting info.
 	   pass it to C */
 	movq	%rsi, %rdi
-	
+
 	/* Finally jump to run C code and to be on real kernel address
 	 * Since we are running on identity-mapped space we have to jump
 	 * to the full 64bit address, this is only possible as indirect
@@ -411,7 +411,7 @@ early_idt_handler_common:
 	cmpl $2,early_recursion_flag(%rip)
 	jz  1f
 	call dump_stack
-#ifdef CONFIG_KALLSYMS	
+#ifdef CONFIG_KALLSYMS
 	leaq early_idt_ripmsg(%rip),%rdi
 	movq 40(%rsp),%rsi	# %rip again
 	call __print_symbol
@@ -537,7 +537,7 @@ ENTRY(phys_base)
 	.quad   0x0000000000000000
 
 #include "../../x86/xen/xen-head.S"
-	
+
 	__PAGE_ALIGNED_BSS
 NEXT_PAGE(empty_zero_page)
 	.skip PAGE_SIZE

@@ -107,7 +107,7 @@ again:
 	return 0;
 }
 
-/* Don't add a printk in there. printk relies on the PDA which is not initialized 
+/* Don't add a printk in there. printk relies on the PDA which is not initialized
    yet. */
 static void __init clear_bss(void)
 {
@@ -194,6 +194,7 @@ void __init x86_64_start_reservations(char *real_mode_data)
 	if (!boot_params.hdr.version)
 		copy_bootdata(__va(real_mode_data));
 
+#if !defined(CONFIG_VMMCP) || CONFIG_VMMCP==0
 	reserve_ebda_region();
 #endif
 

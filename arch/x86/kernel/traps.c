@@ -739,6 +739,12 @@ dotraplinkage void dvroom(struct pt_regs *regs, long error_code)
 	vroom();
 }
 
+dotraplinkage void dvroom(struct pt_regs *regs, long error_code)
+{
+	void vroom(void);
+	vroom();
+}
+
 dotraplinkage void
 do_simd_coprocessor_error(struct pt_regs *regs, long error_code)
 {
