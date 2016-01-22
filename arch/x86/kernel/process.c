@@ -293,14 +293,8 @@ void arch_cpu_idle(void)
  */
 void default_idle(void)
 {
-#ifdef CONFIG_VMMCP
-void hi(char *);
-#endif
 	trace_cpu_idle_rcuidle(1, smp_processor_id());
 	safe_halt();
-#ifdef CONFIG_VMMCP
-hi("I");
-#endif
 	trace_cpu_idle_rcuidle(PWR_EVENT_EXIT, smp_processor_id());
 }
 #ifdef CONFIG_APM_MODULE
