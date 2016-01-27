@@ -1141,7 +1141,7 @@ printk("acpi_mps_check() says no\n");
 {	early_trap_pf_init();early_printk("	early_trap_pf_init();\n");}
 
 #ifndef CONFIG_VMMCP
-{	setup_real_mode();early_printk("	setup_real_mode();\n");}
+	setup_real_mode();
 #endif
 
 
