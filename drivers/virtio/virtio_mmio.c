@@ -499,13 +499,13 @@ error_available:
 	return ERR_PTR(err);
 }
 
-static void *fuckme;
-static int fuckirq;
+static void *hugme;
+static int hugirq;
 
 void vroom(void)
 {
 	//printk("VROOM ...");
-	vm_interrupt(fuckirq, fuckme);
+	vm_interrupt(hugirq, hugme);
 }
 static int vm_find_vqs(struct virtio_device *vdev, unsigned nvqs,
 		       struct virtqueue *vqs[],
@@ -518,12 +518,14 @@ static int vm_find_vqs(struct virtio_device *vdev, unsigned nvqs,
 
 		err = request_irq(irq, vm_interrupt, IRQF_SHARED,
 				dev_name(&vdev->dev), vm_dev);
-printk("vm_dev is %p\n", vm_dev);
-fuckme = vm_dev;
-fuckirq = irq;
-		if (err) {
-			return err;
-		}
+
+	printk("vm_dev is %p\n", vm_dev);
+	hugme = vm_dev;
+	hugirq = irq;
+
+	if (err) {
+		return err;
+	}
 
 	for (i = 0; i < nvqs; ++i) {
 		vqs[i] = vm_setup_vq(vdev, i, callbacks[i], names[i]);
