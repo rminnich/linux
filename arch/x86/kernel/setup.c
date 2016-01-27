@@ -1142,8 +1142,10 @@ printk("acpi_mps_check() says no\n");
 
 #ifndef CONFIG_VMMCP
 {	setup_real_mode();early_printk("	setup_real_mode();\n");}
-#else
-	//setup_clear_cpu_cap(X86_FEATURE_APIC);
+#endif
+
+#ifndef CONFIG_VMMCP
+	setup_clear_cpu_cap(X86_FEATURE_APIC);
 #endif
 
 	memblock_set_current_limit(get_max_mapped());
