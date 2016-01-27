@@ -1088,9 +1088,9 @@ printk("acpi_mps_check() says no\n");
 	/*
 	 * Find and reserve possible boot-time SMP configuration:
 	 */
-#ifndef CONFIG_VMMCP
+
 	find_smp_config();
-#endif
+
 	reserve_ibft_region();
 
 	early_alloc_pgt_buf();
