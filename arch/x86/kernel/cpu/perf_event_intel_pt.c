@@ -1060,12 +1060,6 @@ static __init int pt_init(void)
 {
 	int ret, cpu, prior_warn = 0;
 
-#ifdef CONFIG_VMMCP
-	x86_add_exclusive(x86_lbr_exclusive_pt);
-	pr_warn("VMMCP, doing nothing\n");
-
-	return -EBUSY;
-#endif
 	BUILD_BUG_ON(sizeof(struct topa) > PAGE_SIZE);
 	get_online_cpus();
 	for_each_online_cpu(cpu) {
