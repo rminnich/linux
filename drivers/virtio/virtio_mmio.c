@@ -515,26 +515,13 @@ static int vm_find_vqs(struct virtio_device *vdev, unsigned nvqs,
 	struct virtio_mmio_device *vm_dev = to_virtio_mmio_device(vdev);
 	unsigned int irq = platform_get_irq(vm_dev->pdev, 0);
 	int i, err;
-printk("vdev %p nvqs %d\n", vdev, nvqs);
-#ifdef CONFIG_VMMCP
-	printk("platofrm.get.irq is %d\n", irq);
 
-printk("rq %d %p %x %s %p\n", irq, vm_interrupt, IRQF_SHARED,
-				dev_name(&vdev->dev), vm_dev);
-#endif
 		err = request_irq(irq, vm_interrupt, IRQF_SHARED,
 				dev_name(&vdev->dev), vm_dev);
 printk("vm_dev is %p\n", vm_dev);
 fuckme = vm_dev;
 fuckirq = irq;
 		if (err) {
-#ifdef XXX_CONFIG_VMMCP
-			void make_vmmcp_irq(unsigned int irq);
-			make_vmmcp_irq(irq);
-			err = request_irq(irq, vm_interrupt, IRQF_SHARED,
-				dev_name(&vdev->dev), vm_dev);
-			if (err) panic("still can't do it: %d", err);
-#endif
 			return err;
 		}
 
