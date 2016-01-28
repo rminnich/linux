@@ -192,9 +192,7 @@ void __init x86_64_start_reservations(char *real_mode_data)
 	if (!boot_params.hdr.version)
 		copy_bootdata(__va(real_mode_data));
 
-#if !defined(CONFIG_VMMCP) || CONFIG_VMMCP==0
 	reserve_ebda_region();
-#endif
 
 	start_kernel();
 }
