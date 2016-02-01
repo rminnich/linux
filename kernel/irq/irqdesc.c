@@ -107,7 +107,7 @@ printk("%s: insert %d\n", __func__, irq);
 
 struct irq_desc *irq_to_desc(unsigned int irq)
 {
-printk("%s: insert %d\n", __func__, irq);
+//printk("%s: insert %d\n", __func__, irq);
 	return radix_tree_lookup(&irq_desc_tree, irq);
 }
 EXPORT_SYMBOL(irq_to_desc);

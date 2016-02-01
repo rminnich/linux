@@ -1159,6 +1159,16 @@ static int __init init_tsc_clocksource(void)
  */
 device_initcall(init_tsc_clocksource);
 
+#ifdef CONFIG_VMMCP
+static int __init tsc_frequency(char *str)
+{
+	get_option(&str, &tsc_khz);
+	return 0;
+}
+
+early_param("tscfreq", tsc_frequency);
+#endif
+
 void __init tsc_init(void)
 {
 	u64 lpj;
@@ -1170,8 +1180,14 @@ void __init tsc_init(void)
 		setup_clear_cpu_cap(X86_FEATURE_TSC_DEADLINE_TIMER);
 		return;
 	}
-
+	#ifdef CONFIG_VMMCP
+	if (!tsc_khz) {
+		tsc_khz = x86_platform.calibrate_tsc();
+	}
+	#else
 	tsc_khz = x86_platform.calibrate_tsc();
+	#endif
+
 	cpu_khz = tsc_khz;
 
 	if (!tsc_khz) {
