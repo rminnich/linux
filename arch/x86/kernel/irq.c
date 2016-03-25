@@ -305,7 +305,7 @@ static void (*kvm_posted_intr_wakeup_handler)(void) = dummy_handler;
 
 void kvm_set_posted_intr_wakeup_handler(void (*handler)(void))
 {
-	if (handler)vroom
+	if (handler)
 		kvm_posted_intr_wakeup_handler = handler;
 	else
 		kvm_posted_intr_wakeup_handler = dummy_handler;
