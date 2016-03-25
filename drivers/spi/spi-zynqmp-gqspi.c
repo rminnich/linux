@@ -214,6 +214,7 @@ static void zynqmp_gqspi_selectslave(struct zynqmp_qspi *instanceptr,
 	case GQSPI_SELECT_FLASH_CS_BOTH:
 		instanceptr->genfifocs = GQSPI_GENFIFO_CS_LOWER |
 			GQSPI_GENFIFO_CS_UPPER;
+		break;
 	case GQSPI_SELECT_FLASH_CS_UPPER:
 		instanceptr->genfifocs = GQSPI_GENFIFO_CS_UPPER;
 		break;
@@ -916,9 +917,7 @@ static int zynqmp_qspi_start_transfer(struct spi_master *master,
  */
 static int __maybe_unused zynqmp_qspi_suspend(struct device *dev)
 {
-	struct platform_device *pdev = container_of(dev,
-						    struct platform_device,
-						    dev);
+	struct platform_device *pdev = to_platform_device(dev);
 	struct spi_master *master = platform_get_drvdata(pdev);
 
 	spi_master_suspend(master);
@@ -939,9 +938,7 @@ static int __maybe_unused zynqmp_qspi_suspend(struct device *dev)
  */
 static int __maybe_unused zynqmp_qspi_resume(struct device *dev)
 {
-	struct platform_device *pdev = container_of(dev,
-						    struct platform_device,
-						    dev);
+	struct platform_device *pdev = to_platform_device(dev);
 	struct spi_master *master = platform_get_drvdata(pdev);
 	struct zynqmp_qspi *xqspi = spi_master_get_devdata(master);
 	int ret = 0;

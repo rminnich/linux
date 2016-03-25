@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2014 Marvell Technology Group Ltd.
  *
- * Antoine TÃ©nart <antoine.tenart@free-electrons.com>
+ * Antoine Ténart <antoine.tenart@free-electrons.com>
  *
  * This file is licensed under the terms of the GNU General Public
  * License version 2. This program is licensed "as is" without any
@@ -11,6 +11,7 @@
  */
 
 #include <linux/io.h>
+#include <linux/mfd/syscon.h>
 #include <linux/module.h>
 #include <linux/of.h>
 #include <linux/of_address.h>
@@ -291,17 +292,13 @@ static struct pinctrl_desc berlin_pctrl_desc = {
 	.owner		= THIS_MODULE,
 };
 
-int berlin_pinctrl_probe(struct platform_device *pdev,
-			 const struct berlin_pinctrl_desc *desc)
+int berlin_pinctrl_probe_regmap(struct platform_device *pdev,
+				const struct berlin_pinctrl_desc *desc,
+				struct regmap *regmap)
 {
 	struct device *dev = &pdev->dev;
 	struct berlin_pinctrl *pctrl;
-	struct regmap *regmap;
 	int ret;
-
-	regmap = dev_get_regmap(&pdev->dev, NULL);
-	if (!regmap)
-		return -ENODEV;
 
 	pctrl = devm_kzalloc(dev, sizeof(*pctrl), GFP_KERNEL);
 	if (!pctrl)
@@ -326,4 +323,18 @@ int berlin_pinctrl_probe(struct platform_device *pdev,
 	}
 
 	return 0;
+}
+
+int berlin_pinctrl_probe(struct platform_device *pdev,
+			 const struct berlin_pinctrl_desc *desc)
+{
+	struct device *dev = &pdev->dev;
+	struct device_node *parent_np = of_get_parent(dev->of_node);
+	struct regmap *regmap = syscon_node_to_regmap(parent_np);
+
+	of_node_put(parent_np);
+	if (IS_ERR(regmap))
+		return PTR_ERR(regmap);
+
+	return berlin_pinctrl_probe_regmap(pdev, desc, regmap);
 }

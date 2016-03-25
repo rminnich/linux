@@ -109,13 +109,12 @@ static void snd_card_id_read(struct snd_info_entry *entry,
 
 static int init_info_for_card(struct snd_card *card)
 {
-	int err;
 	struct snd_info_entry *entry;
 
 	entry = snd_info_create_card_entry(card, "id", card->proc_root);
 	if (!entry) {
 		dev_dbg(card->dev, "unable to create card entry\n");
-		return err;
+		return -ENOMEM;
 	}
 	entry->c.text.read = snd_card_id_read;
 	card->proc_id = entry;
@@ -268,6 +267,9 @@ int snd_card_new(struct device *parent, int idx, const char *xid,
 	err = kobject_set_name(&card->card_dev.kobj, "card%d", idx);
 	if (err < 0)
 		goto __error;
+
+	snprintf(card->irq_descr, sizeof(card->irq_descr), "%s:%s",
+		 dev_driver_string(card->dev), dev_name(&card->card_dev));
 
 	/* the control interface cannot be accessed from the user space until */
 	/* snd_cards_bitmask and snd_cards are set with snd_card_register */

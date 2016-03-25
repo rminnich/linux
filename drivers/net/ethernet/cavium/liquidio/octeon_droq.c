@@ -216,9 +216,7 @@ int octeon_delete_droq(struct octeon_device *oct, u32 q_no)
 	dev_dbg(&oct->pci_dev->dev, "%s[%d]\n", __func__, q_no);
 
 	octeon_droq_destroy_ring_buffers(oct, droq);
-
-	if (droq->recv_buf_list)
-		vfree(droq->recv_buf_list);
+	vfree(droq->recv_buf_list);
 
 	if (droq->info_base_addr)
 		cnnic_free_aligned_dma(oct->pci_dev, droq->info_list,
@@ -985,5 +983,5 @@ int octeon_create_droq(struct octeon_device *oct,
 
 create_droq_fail:
 	octeon_delete_droq(oct, q_no);
-	return -1;
+	return -ENOMEM;
 }

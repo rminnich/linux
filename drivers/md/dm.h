@@ -78,8 +78,6 @@ bool dm_table_mq_request_based(struct dm_table *t);
 void dm_table_free_md_mempools(struct dm_table *t);
 struct dm_md_mempools *dm_table_get_md_mempools(struct dm_table *t);
 
-int dm_queue_merge_is_compulsory(struct request_queue *q);
-
 void dm_lock_md_type(struct mapped_device *md);
 void dm_unlock_md_type(struct mapped_device *md);
 void dm_set_md_type(struct mapped_device *md, unsigned type);
@@ -223,9 +221,8 @@ void dm_kcopyd_exit(void);
 /*
  * Mempool operations
  */
-struct dm_md_mempools *dm_alloc_bio_mempools(unsigned integrity,
-					     unsigned per_bio_data_size);
-struct dm_md_mempools *dm_alloc_rq_mempools(struct mapped_device *md, unsigned type);
+struct dm_md_mempools *dm_alloc_md_mempools(struct mapped_device *md, unsigned type,
+					    unsigned integrity, unsigned per_bio_data_size);
 void dm_free_md_mempools(struct dm_md_mempools *pools);
 
 /*

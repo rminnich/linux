@@ -20,6 +20,7 @@
 #include <linux/workqueue.h>
 #include <linux/bitops.h>
 #include <linux/time.h>
+#include <linux/ktime.h>
 #include <xen/platform_pci.h>
 
 #include <asm/xen/swiotlb-xen.h>
@@ -52,7 +53,7 @@ struct pcifront_device {
 };
 
 struct pcifront_sd {
-	int domain;
+	struct pci_sysdata sd;
 	struct pcifront_device *pdev;
 };
 
@@ -66,7 +67,9 @@ static inline void pcifront_init_sd(struct pcifront_sd *sd,
 				    unsigned int domain, unsigned int bus,
 				    struct pcifront_device *pdev)
 {
-	sd->domain = domain;
+	/* Because we do not expose that information via XenBus. */
+	sd->sd.node = first_online_node;
+	sd->sd.domain = domain;
 	sd->pdev = pdev;
 }
 
@@ -115,7 +118,6 @@ static int do_pci_op(struct pcifront_device *pdev, struct xen_pci_op *op)
 	evtchn_port_t port = pdev->evtchn;
 	unsigned irq = pdev->irq;
 	s64 ns, ns_timeout;
-	struct timeval tv;
 
 	spin_lock_irqsave(&pdev->sh_info_lock, irq_flags);
 
@@ -132,8 +134,7 @@ static int do_pci_op(struct pcifront_device *pdev, struct xen_pci_op *op)
 	 * (in the latter case we end up continually re-executing poll() with a
 	 * timeout in the past). 1s difference gives plenty of slack for error.
 	 */
-	do_gettimeofday(&tv);
-	ns_timeout = timeval_to_ns(&tv) + 2 * (s64)NSEC_PER_SEC;
+	ns_timeout = ktime_get_ns() + 2 * (s64)NSEC_PER_SEC;
 
 	xen_clear_irq_pending(irq);
 
@@ -141,8 +142,7 @@ static int do_pci_op(struct pcifront_device *pdev, struct xen_pci_op *op)
 			(unsigned long *)&pdev->sh_info->flags)) {
 		xen_poll_irq_timeout(irq, jiffies + 3*HZ);
 		xen_clear_irq_pending(irq);
-		do_gettimeofday(&tv);
-		ns = timeval_to_ns(&tv);
+		ns = ktime_get_ns();
 		if (ns > ns_timeout) {
 			dev_err(&pdev->xdev->dev,
 				"pciback not responding!!!\n");
@@ -267,7 +267,7 @@ static int pci_frontend_enable_msix(struct pci_dev *dev,
 	}
 
 	i = 0;
-	list_for_each_entry(entry, &dev->msi_list, list) {
+	for_each_pci_msi_entry(entry, dev) {
 		op.msix_entries[i].entry = entry->msi_attrib.entry_nr;
 		/* Vector is useless at this point. */
 		op.msix_entries[i].vector = -1;
@@ -470,8 +470,8 @@ static int pcifront_scan_root(struct pcifront_device *pdev,
 	dev_info(&pdev->xdev->dev, "Creating PCI Frontend Bus %04x:%02x\n",
 		 domain, bus);
 
-	bus_entry = kmalloc(sizeof(*bus_entry), GFP_KERNEL);
-	sd = kmalloc(sizeof(*sd), GFP_KERNEL);
+	bus_entry = kzalloc(sizeof(*bus_entry), GFP_KERNEL);
+	sd = kzalloc(sizeof(*sd), GFP_KERNEL);
 	if (!bus_entry || !sd) {
 		err = -ENOMEM;
 		goto err_out;
