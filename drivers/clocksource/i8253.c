@@ -181,6 +181,8 @@ struct clock_event_device i8253_clockevent = {
  */
 void __init clockevent_i8253_init(bool oneshot)
 {
+	if (!pit_enabled)
+		return;
 	if (oneshot) {
 		i8253_clockevent.features |= CLOCK_EVT_FEAT_ONESHOT;
 		i8253_clockevent.set_state_oneshot = pit_set_oneshot;
