@@ -7,6 +7,7 @@
 #define KMSG_COMPONENT "sclp_early"
 #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
 
+#include <linux/errno.h>
 #include <asm/ctl_reg.h>
 #include <asm/sclp.h>
 #include <asm/ipl.h>
@@ -39,10 +40,14 @@ struct read_info_sccb {
 	u8	fac85;			/* 85 */
 	u8	_pad_86[91 - 86];	/* 86-90 */
 	u8	flags;			/* 91 */
-	u8	_pad_92[100 - 92];	/* 92-99 */
+	u8	_pad_92[99 - 92];	/* 92-98 */
+	u8	hamaxpow;		/* 99 */
 	u32	rnsize2;		/* 100-103 */
 	u64	rnmax2;			/* 104-111 */
-	u8	_pad_112[120 - 112];	/* 112-119 */
+	u8	_pad_112[116 - 112];	/* 112-115 */
+	u8	fac116;			/* 116 */
+	u8	_pad_117[119 - 117];	/* 117-118 */
+	u8	fac119;			/* 119 */
 	u16	hcpua;			/* 120-121 */
 	u8	_pad_122[4096 - 122];	/* 122-4095 */
 } __packed __aligned(PAGE_SIZE);
@@ -98,7 +103,7 @@ static int __init sclp_read_info_early(struct read_info_sccb *sccb)
 
 static void __init sclp_facilities_detect(struct read_info_sccb *sccb)
 {
-	struct sclp_cpu_entry *cpue;
+	struct sclp_core_entry *cpue;
 	u16 boot_cpu_address, cpu;
 
 	if (sclp_read_info_early(sccb))
@@ -106,7 +111,9 @@ static void __init sclp_facilities_detect(struct read_info_sccb *sccb)
 
 	sclp.facilities = sccb->facilities;
 	sclp.has_sprp = !!(sccb->fac84 & 0x02);
-	sclp.has_cpu_type = !!(sccb->fac84 & 0x01);
+	sclp.has_core_type = !!(sccb->fac84 & 0x01);
+	sclp.has_esca = !!(sccb->fac116 & 0x08);
+	sclp.has_hvs = !!(sccb->fac119 & 0x80);
 	if (sccb->fac85 & 0x02)
 		S390_lowcore.machine_flags |= MACHINE_FLAG_ESOP;
 	sclp.rnmax = sccb->rnmax ? sccb->rnmax : sccb->rnmax2;
@@ -114,13 +121,18 @@ static void __init sclp_facilities_detect(struct read_info_sccb *sccb)
 	sclp.rzm <<= 20;
 	sclp.ibc = sccb->ibc;
 
+	if (sccb->hamaxpow && sccb->hamaxpow < 64)
+		sclp.hamax = (1UL << sccb->hamaxpow) - 1;
+	else
+		sclp.hamax = U64_MAX;
+
 	if (!sccb->hcpua) {
 		if (MACHINE_IS_VM)
-			sclp.max_cpu = 64;
+			sclp.max_cores = 64;
 		else
-			sclp.max_cpu = sccb->ncpurl;
+			sclp.max_cores = sccb->ncpurl;
 	} else {
-		sclp.max_cpu = sccb->hcpua + 1;
+		sclp.max_cores = sccb->hcpua + 1;
 	}
 
 	boot_cpu_address = stap();
@@ -130,6 +142,7 @@ static void __init sclp_facilities_detect(struct read_info_sccb *sccb)
 			continue;
 		sclp.has_siif = cpue->siif;
 		sclp.has_sigpif = cpue->sigpif;
+		sclp.has_sief2 = cpue->sief2;
 		break;
 	}
 

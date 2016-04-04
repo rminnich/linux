@@ -129,7 +129,7 @@ static int fl_classify(struct sk_buff *skb, const struct tcf_proto *tp,
 	 * so do it rather here.
 	 */
 	skb_key.basic.n_proto = skb->protocol;
-	skb_flow_dissect(skb, &head->dissector, &skb_key);
+	skb_flow_dissect(skb, &head->dissector, &skb_key, 0);
 
 	fl_set_masked_key(&skb_mkey, &skb_key, &head->mask);
 
@@ -216,8 +216,8 @@ static const struct nla_policy fl_policy[TCA_FLOWER_MAX + 1] = {
 	[TCA_FLOWER_KEY_IPV6_DST_MASK]	= { .len = sizeof(struct in6_addr) },
 	[TCA_FLOWER_KEY_TCP_SRC]	= { .type = NLA_U16 },
 	[TCA_FLOWER_KEY_TCP_DST]	= { .type = NLA_U16 },
-	[TCA_FLOWER_KEY_TCP_SRC]	= { .type = NLA_U16 },
-	[TCA_FLOWER_KEY_TCP_DST]	= { .type = NLA_U16 },
+	[TCA_FLOWER_KEY_UDP_SRC]	= { .type = NLA_U16 },
+	[TCA_FLOWER_KEY_UDP_DST]	= { .type = NLA_U16 },
 };
 
 static void fl_set_key_val(struct nlattr **tb,
@@ -252,23 +252,28 @@ static int fl_set_key(struct net *net, struct nlattr **tb,
 	fl_set_key_val(tb, key->eth.src, TCA_FLOWER_KEY_ETH_SRC,
 		       mask->eth.src, TCA_FLOWER_KEY_ETH_SRC_MASK,
 		       sizeof(key->eth.src));
+
 	fl_set_key_val(tb, &key->basic.n_proto, TCA_FLOWER_KEY_ETH_TYPE,
 		       &mask->basic.n_proto, TCA_FLOWER_UNSPEC,
 		       sizeof(key->basic.n_proto));
+
 	if (key->basic.n_proto == htons(ETH_P_IP) ||
 	    key->basic.n_proto == htons(ETH_P_IPV6)) {
 		fl_set_key_val(tb, &key->basic.ip_proto, TCA_FLOWER_KEY_IP_PROTO,
 			       &mask->basic.ip_proto, TCA_FLOWER_UNSPEC,
 			       sizeof(key->basic.ip_proto));
 	}
-	if (key->control.addr_type == FLOW_DISSECTOR_KEY_IPV4_ADDRS) {
+
+	if (tb[TCA_FLOWER_KEY_IPV4_SRC] || tb[TCA_FLOWER_KEY_IPV4_DST]) {
+		key->control.addr_type = FLOW_DISSECTOR_KEY_IPV4_ADDRS;
 		fl_set_key_val(tb, &key->ipv4.src, TCA_FLOWER_KEY_IPV4_SRC,
 			       &mask->ipv4.src, TCA_FLOWER_KEY_IPV4_SRC_MASK,
 			       sizeof(key->ipv4.src));
 		fl_set_key_val(tb, &key->ipv4.dst, TCA_FLOWER_KEY_IPV4_DST,
 			       &mask->ipv4.dst, TCA_FLOWER_KEY_IPV4_DST_MASK,
 			       sizeof(key->ipv4.dst));
-	} else if (key->control.addr_type == FLOW_DISSECTOR_KEY_IPV6_ADDRS) {
+	} else if (tb[TCA_FLOWER_KEY_IPV6_SRC] || tb[TCA_FLOWER_KEY_IPV6_DST]) {
+		key->control.addr_type = FLOW_DISSECTOR_KEY_IPV6_ADDRS;
 		fl_set_key_val(tb, &key->ipv6.src, TCA_FLOWER_KEY_IPV6_SRC,
 			       &mask->ipv6.src, TCA_FLOWER_KEY_IPV6_SRC_MASK,
 			       sizeof(key->ipv6.src));
@@ -276,6 +281,7 @@ static int fl_set_key(struct net *net, struct nlattr **tb,
 			       &mask->ipv6.dst, TCA_FLOWER_KEY_IPV6_DST_MASK,
 			       sizeof(key->ipv6.dst));
 	}
+
 	if (key->basic.ip_proto == IPPROTO_TCP) {
 		fl_set_key_val(tb, &key->tp.src, TCA_FLOWER_KEY_TCP_SRC,
 			       &mask->tp.src, TCA_FLOWER_UNSPEC,
@@ -499,7 +505,7 @@ static int fl_change(struct net *net, struct sk_buff *in_skb,
 	*arg = (unsigned long) fnew;
 
 	if (fold) {
-		list_replace_rcu(&fnew->list, &fold->list);
+		list_replace_rcu(&fold->list, &fnew->list);
 		tcf_unbind_filter(tp, &fold->res);
 		call_rcu(&fold->rcu, fl_destroy_filter);
 	} else {

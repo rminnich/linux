@@ -20,6 +20,7 @@
 #include <linux/input/mt.h>
 #include <linux/serio.h>
 #include <linux/libps2.h>
+#include <linux/dmi.h>
 
 #include "psmouse.h"
 #include "alps.h"
@@ -30,6 +31,7 @@
 #define ALPS_CMD_NIBBLE_10	0x01f2
 
 #define ALPS_REG_BASE_RUSHMORE	0xc2c0
+#define ALPS_REG_BASE_V7	0xc2c0
 #define ALPS_REG_BASE_PINNACLE	0x0000
 
 static const struct alps_nibble_commands alps_v3_nibble_commands[] = {
@@ -99,6 +101,7 @@ static const struct alps_nibble_commands alps_v6_nibble_commands[] = {
 #define ALPS_FOUR_BUTTONS	0x40	/* 4 direction button present */
 #define ALPS_PS2_INTERLEAVED	0x80	/* 3-byte PS/2 packet interleaved with
 					   6-byte ALPS packet */
+#define ALPS_STICK_BITS		0x100	/* separate stick button bits */
 #define ALPS_BUTTONPAD		0x200	/* device is a clickpad */
 
 static const struct alps_model_info alps_model_data[] = {
@@ -155,6 +158,43 @@ static const struct alps_protocol_info alps_v7_protocol_data = {
 
 static const struct alps_protocol_info alps_v8_protocol_data = {
 	ALPS_PROTO_V8, 0x18, 0x18, 0
+};
+
+/*
+ * Some v2 models report the stick buttons in separate bits
+ */
+static const struct dmi_system_id alps_dmi_has_separate_stick_buttons[] = {
+#if defined(CONFIG_DMI) && defined(CONFIG_X86)
+	{
+		/* Extrapolated from other entries */
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "Latitude D420"),
+		},
+	},
+	{
+		/* Reported-by: Hans de Bruin <jmdebruin@xmsnet.nl> */
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "Latitude D430"),
+		},
+	},
+	{
+		/* Reported-by: Hans de Goede <hdegoede@redhat.com> */
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "Latitude D620"),
+		},
+	},
+	{
+		/* Extrapolated from other entries */
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+			DMI_MATCH(DMI_PRODUCT_NAME, "Latitude D630"),
+		},
+	},
+#endif
+	{ }
 };
 
 static void alps_set_abs_params_st(struct alps_data *priv,
@@ -251,9 +291,8 @@ static void alps_process_packet_v1_v2(struct psmouse *psmouse)
 		return;
 	}
 
-	/* Non interleaved V2 dualpoint has separate stick button bits */
-	if (priv->proto_version == ALPS_PROTO_V2 &&
-	    priv->flags == (ALPS_PASS | ALPS_DUALPOINT)) {
+	/* Some models have separate stick button bits */
+	if (priv->flags & ALPS_STICK_BITS) {
 		left |= packet[0] & 1;
 		right |= packet[0] & 2;
 		middle |= packet[0] & 4;
@@ -2009,7 +2048,7 @@ static int alps_absolute_mode_v3(struct psmouse *psmouse)
 	return 0;
 }
 
-static int alps_probe_trackstick_v3(struct psmouse *psmouse, int reg_base)
+static int alps_probe_trackstick_v3_v7(struct psmouse *psmouse, int reg_base)
 {
 	int ret = -EIO, reg_val;
 
@@ -2090,15 +2129,12 @@ error:
 
 static int alps_hw_init_v3(struct psmouse *psmouse)
 {
+	struct alps_data *priv = psmouse->private;
 	struct ps2dev *ps2dev = &psmouse->ps2dev;
 	int reg_val;
 	unsigned char param[4];
 
-	reg_val = alps_probe_trackstick_v3(psmouse, ALPS_REG_BASE_PINNACLE);
-	if (reg_val == -EIO)
-		goto error;
-
-	if (reg_val == 0 &&
+	if ((priv->flags & ALPS_DUALPOINT) &&
 	    alps_setup_trackstick_v3(psmouse, ALPS_REG_BASE_PINNACLE) == -EIO)
 		goto error;
 
@@ -2564,6 +2600,8 @@ static int alps_set_protocol(struct psmouse *psmouse,
 		priv->set_abs_params = alps_set_abs_params_st;
 		priv->x_max = 1023;
 		priv->y_max = 767;
+		if (dmi_check_system(alps_dmi_has_separate_stick_buttons))
+			priv->flags |= ALPS_STICK_BITS;
 		break;
 
 	case ALPS_PROTO_V3:
@@ -2573,6 +2611,11 @@ static int alps_set_protocol(struct psmouse *psmouse,
 		priv->decode_fields = alps_decode_pinnacle;
 		priv->nibble_commands = alps_v3_nibble_commands;
 		priv->addr_command = PSMOUSE_CMD_RESET_WRAP;
+
+		if (alps_probe_trackstick_v3_v7(psmouse,
+						ALPS_REG_BASE_PINNACLE) < 0)
+			priv->flags &= ~ALPS_DUALPOINT;
+
 		break;
 
 	case ALPS_PROTO_V3_RUSHMORE:
@@ -2585,8 +2628,8 @@ static int alps_set_protocol(struct psmouse *psmouse,
 		priv->x_bits = 16;
 		priv->y_bits = 12;
 
-		if (alps_probe_trackstick_v3(psmouse,
-					     ALPS_REG_BASE_RUSHMORE) < 0)
+		if (alps_probe_trackstick_v3_v7(psmouse,
+						ALPS_REG_BASE_RUSHMORE) < 0)
 			priv->flags &= ~ALPS_DUALPOINT;
 
 		break;
@@ -2635,6 +2678,9 @@ static int alps_set_protocol(struct psmouse *psmouse,
 
 		if (priv->fw_ver[1] != 0xba)
 			priv->flags |= ALPS_BUTTONPAD;
+
+		if (alps_probe_trackstick_v3_v7(psmouse, ALPS_REG_BASE_V7) < 0)
+			priv->flags &= ~ALPS_DUALPOINT;
 
 		break;
 

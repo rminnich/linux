@@ -142,7 +142,6 @@ static int msg_insert(struct msg_msg *msg, struct mqueue_inode_info *info)
 		if (!leaf)
 			return -ENOMEM;
 		INIT_LIST_HEAD(&leaf->msg_list);
-		info->qsize += sizeof(*leaf);
 	}
 	leaf->priority = msg->m_type;
 	rb_link_node(&leaf->rb_node, parent, p);
@@ -187,7 +186,6 @@ try_again:
 			     "lazy leaf delete!\n");
 		rb_erase(&leaf->rb_node, &info->msg_tree);
 		if (info->node_cache) {
-			info->qsize -= sizeof(*leaf);
 			kfree(leaf);
 		} else {
 			info->node_cache = leaf;
@@ -200,7 +198,6 @@ try_again:
 		if (list_empty(&leaf->msg_list)) {
 			rb_erase(&leaf->rb_node, &info->msg_tree);
 			if (info->node_cache) {
-				info->qsize -= sizeof(*leaf);
 				kfree(leaf);
 			} else {
 				info->node_cache = leaf;
@@ -798,7 +795,7 @@ SYSCALL_DEFINE4(mq_open, const char __user *, u_name, int, oflag, umode_t, mode,
 
 	ro = mnt_want_write(mnt);	/* we'll drop it in any case */
 	error = 0;
-	mutex_lock(&d_inode(root)->i_mutex);
+	inode_lock(d_inode(root));
 	path.dentry = lookup_one_len(name->name, root, strlen(name->name));
 	if (IS_ERR(path.dentry)) {
 		error = PTR_ERR(path.dentry);
@@ -844,7 +841,7 @@ out_putfd:
 		put_unused_fd(fd);
 		fd = error;
 	}
-	mutex_unlock(&d_inode(root)->i_mutex);
+	inode_unlock(d_inode(root));
 	if (!ro)
 		mnt_drop_write(mnt);
 out_putname:
@@ -869,7 +866,7 @@ SYSCALL_DEFINE1(mq_unlink, const char __user *, u_name)
 	err = mnt_want_write(mnt);
 	if (err)
 		goto out_name;
-	mutex_lock_nested(&d_inode(mnt->mnt_root)->i_mutex, I_MUTEX_PARENT);
+	inode_lock_nested(d_inode(mnt->mnt_root), I_MUTEX_PARENT);
 	dentry = lookup_one_len(name->name, mnt->mnt_root,
 				strlen(name->name));
 	if (IS_ERR(dentry)) {
@@ -887,7 +884,7 @@ SYSCALL_DEFINE1(mq_unlink, const char __user *, u_name)
 	dput(dentry);
 
 out_unlock:
-	mutex_unlock(&d_inode(mnt->mnt_root)->i_mutex);
+	inode_unlock(d_inode(mnt->mnt_root));
 	if (inode)
 		iput(inode);
 	mnt_drop_write(mnt);
@@ -1034,7 +1031,6 @@ SYSCALL_DEFINE5(mq_timedsend, mqd_t, mqdes, const char __user *, u_msg_ptr,
 		/* Save our speculative allocation into the cache */
 		INIT_LIST_HEAD(&new_leaf->msg_list);
 		info->node_cache = new_leaf;
-		info->qsize += sizeof(*new_leaf);
 		new_leaf = NULL;
 	} else {
 		kfree(new_leaf);
@@ -1142,7 +1138,6 @@ SYSCALL_DEFINE5(mq_timedreceive, mqd_t, mqdes, char __user *, u_msg_ptr,
 		/* Save our speculative allocation into the cache */
 		INIT_LIST_HEAD(&new_leaf->msg_list);
 		info->node_cache = new_leaf;
-		info->qsize += sizeof(*new_leaf);
 	} else {
 		kfree(new_leaf);
 	}
@@ -1443,7 +1438,7 @@ static int __init init_mqueue_fs(void)
 
 	mqueue_inode_cachep = kmem_cache_create("mqueue_inode_cache",
 				sizeof(struct mqueue_inode_info), 0,
-				SLAB_HWCACHE_ALIGN, init_once);
+				SLAB_HWCACHE_ALIGN|SLAB_ACCOUNT, init_once);
 	if (mqueue_inode_cachep == NULL)
 		return -ENOMEM;
 

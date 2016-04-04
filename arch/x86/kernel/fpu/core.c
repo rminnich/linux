@@ -270,7 +270,7 @@ int fpu__copy(struct fpu *dst_fpu, struct fpu *src_fpu)
 	dst_fpu->fpregs_active = 0;
 	dst_fpu->last_cpu = -1;
 
-	if (src_fpu->fpstate_active)
+	if (src_fpu->fpstate_active && cpu_has_fpu)
 		fpu_copy(dst_fpu, src_fpu);
 
 	return 0;
@@ -409,8 +409,10 @@ static inline void copy_init_fpstate_to_fpregs(void)
 {
 	if (use_xsave())
 		copy_kernel_to_xregs(&init_fpstate.xsave, -1);
-	else
+	else if (static_cpu_has(X86_FEATURE_FXSR))
 		copy_kernel_to_fxregs(&init_fpstate.fxsave);
+	else
+		copy_kernel_to_fregs(&init_fpstate.fsave);
 }
 
 /*

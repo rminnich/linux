@@ -10,10 +10,9 @@
 #include "util/header.h"
 #include "util/session.h"
 #include "util/intlist.h"
-#include "util/parse-options.h"
+#include <subcmd/parse-options.h>
 #include "util/trace-event.h"
 #include "util/debug.h"
-#include <api/fs/debugfs.h>
 #include "util/tool.h"
 #include "util/stat.h"
 #include "util/top.h"
@@ -1061,8 +1060,10 @@ static int read_events(struct perf_kvm_stat *kvm)
 
 	symbol__init(&kvm->session->header.env);
 
-	if (!perf_session__has_traces(kvm->session, "kvm record"))
-		return -EINVAL;
+	if (!perf_session__has_traces(kvm->session, "kvm record")) {
+		ret = -EINVAL;
+		goto out_delete;
+	}
 
 	/*
 	 * Do not use 'isa' recorded in kvm_exit tracepoint since it is not
@@ -1070,9 +1071,13 @@ static int read_events(struct perf_kvm_stat *kvm)
 	 */
 	ret = cpu_isa_config(kvm);
 	if (ret < 0)
-		return ret;
+		goto out_delete;
 
-	return perf_session__process_events(kvm->session);
+	ret = perf_session__process_events(kvm->session);
+
+out_delete:
+	perf_session__delete(kvm->session);
+	return ret;
 }
 
 static int parse_target_str(struct perf_kvm_stat *kvm)
@@ -1346,7 +1351,6 @@ static int kvm_events_live(struct perf_kvm_stat *kvm,
 	disable_buildid_cache();
 
 	use_browser = 0;
-	setup_browser(false);
 
 	if (argc) {
 		argc = parse_options(argc, argv, live_options,
@@ -1404,8 +1408,6 @@ static int kvm_events_live(struct perf_kvm_stat *kvm,
 	err = kvm_events_live_report(kvm);
 
 out:
-	exit_browser(0);
-
 	if (kvm->session)
 		perf_session__delete(kvm->session);
 	kvm->session = NULL;

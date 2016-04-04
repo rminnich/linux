@@ -134,7 +134,7 @@ static void record_ird_ord(struct nes_cm_node *, u16, u16);
 /* External CM API Interface */
 /* instance of function pointers for client API */
 /* set address of this instance to cm_core->cm_ops at cm_core alloc */
-static struct nes_cm_ops nes_cm_api = {
+static const struct nes_cm_ops nes_cm_api = {
 	mini_cm_accelerated,
 	mini_cm_listen,
 	mini_cm_del_listen,
@@ -1520,8 +1520,9 @@ static int nes_addr_resolve_neigh(struct nes_vnic *nesvnic, u32 dst_ip, int arpi
 	int rc = arpindex;
 	struct net_device *netdev;
 	struct nes_adapter *nesadapter = nesvnic->nesdev->nesadapter;
+	__be32 dst_ipaddr = htonl(dst_ip);
 
-	rt = ip_route_output(&init_net, htonl(dst_ip), 0, 0, 0);
+	rt = ip_route_output(&init_net, dst_ipaddr, nesvnic->local_ipaddr, 0, 0);
 	if (IS_ERR(rt)) {
 		printk(KERN_ERR "%s: ip_route_output_key failed for 0x%08X\n",
 		       __func__, dst_ip);
@@ -1533,7 +1534,7 @@ static int nes_addr_resolve_neigh(struct nes_vnic *nesvnic, u32 dst_ip, int arpi
 	else
 		netdev = nesvnic->netdev;
 
-	neigh = neigh_lookup(&arp_tbl, &rt->rt_gateway, netdev);
+	neigh = dst_neigh_lookup(&rt->dst, &dst_ipaddr);
 
 	rcu_read_lock();
 	if (neigh) {
@@ -3231,7 +3232,6 @@ int nes_accept(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
 	int passive_state;
 	struct nes_ib_device *nesibdev;
 	struct ib_mr *ibmr = NULL;
-	struct ib_phys_buf ibphysbuf;
 	struct nes_pd *nespd;
 	u64 tagged_offset;
 	u8 mpa_frame_offset = 0;
@@ -3315,21 +3315,19 @@ int nes_accept(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
 		u64temp = (unsigned long)nesqp;
 		nesibdev = nesvnic->nesibdev;
 		nespd = nesqp->nespd;
-		ibphysbuf.addr = nesqp->ietf_frame_pbase + mpa_frame_offset;
-		ibphysbuf.size = buff_len;
 		tagged_offset = (u64)(unsigned long)*start_buff;
-		ibmr = nesibdev->ibdev.reg_phys_mr((struct ib_pd *)nespd,
-						   &ibphysbuf, 1,
-						   IB_ACCESS_LOCAL_WRITE,
-						   &tagged_offset);
-		if (!ibmr) {
+		ibmr = nes_reg_phys_mr(&nespd->ibpd,
+				nesqp->ietf_frame_pbase + mpa_frame_offset,
+				buff_len, IB_ACCESS_LOCAL_WRITE,
+				&tagged_offset);
+		if (IS_ERR(ibmr)) {
 			nes_debug(NES_DBG_CM, "Unable to register memory region"
 				  "for lSMM for cm_node = %p \n",
 				  cm_node);
 			pci_free_consistent(nesdev->pcidev,
 					    nesqp->private_data_len + nesqp->ietf_frame_size,
 					    nesqp->ietf_frame, nesqp->ietf_frame_pbase);
-			return -ENOMEM;
+			return PTR_ERR(ibmr);
 		}
 
 		ibmr->pd = &nespd->ibpd;
