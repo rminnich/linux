@@ -69,7 +69,6 @@ static void mask_8259A_irq(unsigned int irq)
 
 static void disable_8259A_irq(struct irq_data *data)
 {
-	printk("%s\n", __func__);
 	mask_8259A_irq(data->irq);
 }
 
@@ -78,7 +77,6 @@ static void unmask_8259A_irq(unsigned int irq)
 	unsigned int mask = ~(1 << irq);
 	unsigned long flags;
 
-	printk("%s\n", __func__);
 	raw_spin_lock_irqsave(&i8259A_lock, flags);
 	cached_irq_mask &= mask;
 	if (irq & 8)
@@ -90,7 +88,6 @@ static void unmask_8259A_irq(unsigned int irq)
 
 static void enable_8259A_irq(struct irq_data *data)
 {
-	printk("%s\n", __func__);
 	unmask_8259A_irq(data->irq);
 }
 
@@ -100,7 +97,6 @@ static int i8259A_irq_pending(unsigned int irq)
 	unsigned long flags;
 	int ret;
 
-	printk("%s\n", __func__);
 	raw_spin_lock_irqsave(&i8259A_lock, flags);
 	if (irq < 8)
 		ret = inb(PIC_MASTER_CMD) & mask;
@@ -113,7 +109,6 @@ static int i8259A_irq_pending(unsigned int irq)
 
 static void make_8259A_irq(unsigned int irq)
 {
-	printk("===================================> %s\n", __func__);
 	disable_irq_nosync(irq);
 	io_apic_irqs &= ~(1<<irq);
 	irq_set_chip_and_handler(irq, &i8259A_chip, handle_level_irq);
@@ -131,7 +126,6 @@ static inline int i8259A_irq_real(unsigned int irq)
 	int value;
 	int irqmask = 1<<irq;
 
-	printk("%s\n", __func__);
 	if (irq < 8) {
 		outb(0x0B, PIC_MASTER_CMD);	/* ISR register */
 		value = inb(PIC_MASTER_CMD) & irqmask;
@@ -156,7 +150,6 @@ static void mask_and_ack_8259A(struct irq_data *data)
 	unsigned int irqmask = 1 << irq;
 	unsigned long flags;
 
-	printk("%s\n", __func__);
 	raw_spin_lock_irqsave(&i8259A_lock, flags);
 	/*
 	 * Lightweight spurious IRQ detection. We do not want
@@ -239,14 +232,12 @@ static char irq_trigger[2];
  */
 static void restore_ELCR(char *trigger)
 {
-	printk("%s\n", __func__);
 	outb(trigger[0], 0x4d0);
 	outb(trigger[1], 0x4d1);
 }
 
 static void save_ELCR(char *trigger)
 {
-	printk("%s\n", __func__);
 	/* IRQ 0,1,2,8,13 are marked as reserved */
 	trigger[0] = inb(0x4d0) & 0xF8;
 	trigger[1] = inb(0x4d1) & 0xDE;
@@ -254,21 +245,18 @@ static void save_ELCR(char *trigger)
 
 static void i8259A_resume(void)
 {
-	printk("%s\n", __func__);
 	init_8259A(i8259A_auto_eoi);
 	restore_ELCR(irq_trigger);
 }
 
 static int i8259A_suspend(void)
 {
-	printk("%s\n", __func__);
 	save_ELCR(irq_trigger);
 	return 0;
 }
 
 static void i8259A_shutdown(void)
 {
-	printk("%s\n", __func__);
 	/* Put the i8259A into a quiescent state that
 	 * the kernel initialization code can get it
 	 * out of.
@@ -416,7 +404,6 @@ struct legacy_pic null_legacy_pic = {
 	.make_irq = legacy_pic_uint_noop,
 };
 
-
 struct legacy_pic default_legacy_pic = {
 	.nr_legacy_irqs = NR_IRQS_LEGACY,
 	.chip  = &i8259A_chip,
@@ -430,8 +417,7 @@ struct legacy_pic default_legacy_pic = {
 	.make_irq = make_8259A_irq,
 };
 
-//struct legacy_pic *legacy_pic = &default_legacy_pic;
-struct legacy_pic *legacy_pic = &null_legacy_pic;
+struct legacy_pic *legacy_pic = &null_legacy_pic; // &default_legacy_pic;
 
 static int __init i8259A_init_ops(void)
 {

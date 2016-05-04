@@ -52,7 +52,6 @@ detect_hypervisor_vendor(void)
 	for (p = hypervisors; p < hypervisors + ARRAY_SIZE(hypervisors); p++) {
 		h = *p;
 		pri = h->detect();
-
 		if (pri != 0 && pri > max_pri) {
 			max_pri = pri;
 			x86_hyper = h;

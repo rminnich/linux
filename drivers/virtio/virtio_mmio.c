@@ -296,22 +296,9 @@ irqreturn_t vm_interrupt(int irq, void *opaque)
 	unsigned long status;
 	unsigned long flags;
 	irqreturn_t ret = IRQ_NONE;
-	uint32_t magic;
-	int i = 0;
-	if (0)printk("VM INTERRTU!!!!! VTOP is 0x%p\n", (void *)(vmalloc_to_page(vm_dev->base)));
-
-	magic = readl(vm_dev->base + VIRTIO_MMIO_MAGIC_VALUE);
-	if (magic != ('v' | 'i' << 8 | 'r' << 16 | 't' << 24)) {
-		printk("Wrong magic value 0x%08x @ %p!\n", magic, vm_dev->base + VIRTIO_MMIO_MAGIC_VALUE);
-		return IRQ_HANDLED;
-	}
 
 	/* Read and acknowledge interrupts */
-	if (0)printk("base %p\n", vm_dev->base);
 	status = readl(vm_dev->base + VIRTIO_MMIO_INTERRUPT_STATUS);
-
-	if (0)printk("ADDRESS: 0x%p", vm_dev->base + VIRTIO_MMIO_INTERRUPT_STATUS);
-	if (0)printk("Status is 0x%lx\n", status);
 	writel(status, vm_dev->base + VIRTIO_MMIO_INTERRUPT_ACK);
 
 	if (unlikely(status & VIRTIO_MMIO_INT_CONFIG)) {
@@ -320,19 +307,11 @@ irqreturn_t vm_interrupt(int irq, void *opaque)
 	}
 
 	if (likely(status & VIRTIO_MMIO_INT_VRING)) {
-		if (0)printk("vm_dev is %p\n", vm_dev);
 		spin_lock_irqsave(&vm_dev->lock, flags);
-		if (0)printk("locked\n");
-		list_for_each_entry(info, &vm_dev->virtqueues, node) {
-			if (0) printk("info %p vq %p\n", info, info->vq);
-			if (0 && i == 0) printk("ZERO!\n");
-			ret |= vring_interrupt(i++, info->vq);
-			if (0 && i == 1) printk("DONE ZERO!\n");
-			if (0) printk("done interrupt\n");
-		}
+		list_for_each_entry(info, &vm_dev->virtqueues, node)
+			ret |= vring_interrupt(irq, info->vq);
 		spin_unlock_irqrestore(&vm_dev->lock, flags);
-	if (0)printk("unlocked\n");
-	} else printk("NOTHING TO DO\n");
+	}
 
 	return ret;
 }
@@ -505,7 +484,6 @@ static int hugirq;
 
 void vroom(void)
 {
-	//printk("VROOM ...");
 	vm_interrupt(hugirq, hugme);
 }
 static int vm_find_vqs(struct virtio_device *vdev, unsigned nvqs,
@@ -517,16 +495,15 @@ static int vm_find_vqs(struct virtio_device *vdev, unsigned nvqs,
 	unsigned int irq = platform_get_irq(vm_dev->pdev, 0);
 	int i, err;
 
-		err = request_irq(irq, vm_interrupt, IRQF_SHARED,
-				dev_name(&vdev->dev), vm_dev);
+	err = request_irq(irq, vm_interrupt, IRQF_SHARED,
+			  dev_name(&vdev->dev), vm_dev);
 
 	printk("vm_dev is %p\n", vm_dev);
 	hugme = vm_dev;
 	hugirq = irq;
 
-	if (err) {
+	if (err)
 		return err;
-	}
 
 	for (i = 0; i < nvqs; ++i) {
 		vqs[i] = vm_setup_vq(vdev, i, callbacks[i], names[i]);
@@ -591,12 +568,11 @@ static int virtio_mmio_probe(struct platform_device *pdev)
 	vm_dev->base = devm_ioremap(&pdev->dev, mem->start, resource_size(mem));
 	if (vm_dev->base == NULL)
 		return -EFAULT;
-printk("----------> memstart %p  vm_dev->base %p", (void *)mem->start, vm_dev->base);
-printk(" VTOP is 0x%p\n", (void *) (vmalloc_to_page(vm_dev->base)));
 	/* Check magic value */
 	magic = readl(vm_dev->base + VIRTIO_MMIO_MAGIC_VALUE);
 	if (magic != ('v' | 'i' << 8 | 'r' << 16 | 't' << 24)) {
-		dev_warn(&pdev->dev, "Wrong magic value 0x%08lx @ %p!\n", magic, vm_dev->base + VIRTIO_MMIO_MAGIC_VALUE);
+		dev_warn(&pdev->dev, "Wrong magic value 0x%08lx @ %p!\n", magic,
+			 vm_dev->base + VIRTIO_MMIO_MAGIC_VALUE);
 		return -ENODEV;
 	}
 
@@ -789,13 +765,11 @@ static struct platform_driver virtio_mmio_driver = {
 
 static int __init virtio_mmio_init(void)
 {
-printk("VIRTIO MMIO ENTER!\n");
 	return platform_driver_register(&virtio_mmio_driver);
 }
 
 static void __exit virtio_mmio_exit(void)
 {
-printk("VIRTIO MMIO EXIT!\n");
 	platform_driver_unregister(&virtio_mmio_driver);
 	vm_unregister_cmdline_devices();
 }

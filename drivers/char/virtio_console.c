@@ -750,16 +750,14 @@ static ssize_t port_fops_read(struct file *filp, char __user *ubuf,
 {
 	struct port *port;
 	ssize_t ret;
-void hi(char *);
-hi("================================================\n");
+
 	port = filp->private_data;
-hi("R");
+
 	/* Port is hot-unplugged. */
 	if (!port->guest_connected)
 		return -ENODEV;
-hi("S");
+
 	if (!port_has_data(port)) {
-hi("T");
 		/*
 		 * If nothing's connected on the host just return 0 in
 		 * case of list_empty; this tells the userspace app
@@ -772,12 +770,10 @@ hi("T");
 
 		ret = wait_event_freezable(port->waitqueue,
 					   !will_read_block(port));
-hi("RET < 0\n");
 		if (ret < 0)
 			return ret;
 	}
 	/* Port got hot-unplugged while we were waiting above. */
-hi("U");
 	if (!port->guest_connected)
 		return -ENODEV;
 	/*
@@ -790,10 +786,9 @@ hi("U");
 	 * really want to give off whatever data we have and only then
 	 * check for host_connected.
 	 */
-	if (!port_has_data(port) && !port->host_connected) hi("0");
 	if (!port_has_data(port) && !port->host_connected)
 		return 0;
-hi("F");
+
 	return fill_readbuf(port, ubuf, count, true);
 }
 

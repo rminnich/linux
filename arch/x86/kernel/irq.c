@@ -286,14 +286,10 @@ __visible void smp_x86_platform_ipi(struct pt_regs *regs)
 __visible void smp_vmmcp_posted_intr_ipi(struct pt_regs *regs)
 {
 	struct pt_regs *old_regs = set_irq_regs(regs);
-	uint64_t x;
-	//printk("<IAMHERE>\n");
 	entering_ack_irq();
 	inc_irq_stat(vmmcp_posted_intr_ipis);
 	exiting_irq();
 	set_irq_regs(old_regs);
-	//rdmsrl(0x1b, x);
-	//printk("MSR 0x1b: %llx", x);
 	vroom();
 }
 
@@ -319,7 +315,6 @@ __visible void smp_kvm_posted_intr_ipi(struct pt_regs *regs)
 {
 	struct pt_regs *old_regs = set_irq_regs(regs);
 
-	//printk("<KVMHERE>\n");
 	entering_ack_irq();
 	inc_irq_stat(kvm_posted_intr_ipis);
 	exiting_irq();

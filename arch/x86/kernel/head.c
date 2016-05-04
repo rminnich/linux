@@ -40,7 +40,7 @@ void __init reserve_ebda_region(void)
 	 */
 
 	#if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
-	 	return;
+		return;
 	#endif
 
 	if (paravirt_enabled())

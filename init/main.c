@@ -387,19 +387,19 @@ static noinline void __init_refok rest_init(void)
 {
 	int pid;
 
-	rcu_scheduler_starting(); printk("	rcu_scheduler_starting();\n");
-	smpboot_thread_init(); printk("	smpboot_thread_init();\n");
+	rcu_scheduler_starting();
+	smpboot_thread_init();
 	/*
 	 * We need to spawn init first so that it obtains pid 1, however
 	 * the init task will end up wanting to create kthreads, which, if
 	 * we schedule it before we create kthreadd, will OOPS.
 	 */
 	kernel_thread(kernel_init, NULL, CLONE_FS);
-	numa_default_policy(); printk("	numa_default_policy();\n");
+	numa_default_policy();
 	pid = kernel_thread(kthreadd, NULL, CLONE_FS | CLONE_FILES);
-	rcu_read_lock(); printk("	rcu_read_lock();\n");
+	rcu_read_lock();
 	kthreadd_task = find_task_by_pid_ns(pid, &init_pid_ns);
-	rcu_read_unlock(); printk("	rcu_read_unlock();\n");
+	rcu_read_unlock();
 	complete(&kthreadd_done);
 
 	/*
@@ -407,7 +407,7 @@ static noinline void __init_refok rest_init(void)
 	 * at least once to get things moving:
 	 */
 	init_idle_bootup_task(current);
-	schedule_preempt_disabled(); printk("	schedule_preempt_disabled();\n");
+	schedule_preempt_disabled();
 	/* Call into cpu_idle with preempt disabled */
 	cpu_startup_entry(CPUHP_ONLINE);
 }
@@ -555,9 +555,7 @@ asmlinkage __visible void __init start_kernel(void)
 	pidhash_init();
 	vfs_caches_init_early();
 	sort_main_extable();
-printk("call trap init\n");
 	trap_init();
-printk("call mm init\n");
 	mm_init();
 
 	/*
@@ -565,46 +563,42 @@ printk("call mm init\n");
 	 * timer interrupt). Full topology setup happens at smp_init()
 	 * time - but meanwhile we still have a functioning scheduler.
 	 */
-printk("call sched init\n");
 	sched_init();
 	/*
 	 * Disable preemption - early bootup scheduling is extremely
 	 * fragile until we cpu_idle() for the first time.
 	 */
-printk("preemtp disable\n");
 	preempt_disable();
 	if (WARN(!irqs_disabled(),
 		 "Interrupts were enabled *very* early, fixing it\n"))
 		local_irq_disable();
-printk("idr init cache\n");
 	idr_init_cache();
-printk("call rcu_init\n");
 	rcu_init();
 
 	/* trace_printk() and trace points may be used after this */
 	trace_init();
 
-	context_tracking_init(); printk("	context_tracking_init();\n");
-	radix_tree_init(); printk("	radix_tree_init();\n");
+	context_tracking_init();
+	radix_tree_init();
 	/* init some links before init_ISA_irqs() */
-	early_irq_init(); printk("	early_irq_init();\n");
-	init_IRQ(); printk("	init_IRQ();\n");
-	tick_init(); printk("	tick_init();\n");
-	rcu_init_nohz(); printk("	rcu_init_nohz();\n");
-	init_timers(); printk("	init_timers();\n");
-	hrtimers_init(); printk("	hrtimers_init();\n");
-	softirq_init(); printk("	softirq_init();\n");
-	timekeeping_init(); printk("	timekeeping_init();\n");
-	time_init(); printk("	time_init();\n");
-	sched_clock_postinit(); printk("	sched_clock_postinit();\n");
-	perf_event_init(); printk("	perf_event_init();\n");
-	profile_init(); printk("	profile_init();\n");
-	call_function_init(); printk("	call_function_init();\n");
+	early_irq_init();
+	init_IRQ();
+	tick_init();
+	rcu_init_nohz();
+	init_timers();
+	hrtimers_init();
+	softirq_init();
+	timekeeping_init();
+	time_init();
+	sched_clock_postinit();
+	perf_event_init();
+	profile_init();
+	call_function_init();
 	WARN(!irqs_disabled(), "Interrupts were enabled early\n");
 	early_boot_irqs_disabled = false;
-	local_irq_enable(); printk("	local_irq_enable();\n");
+	local_irq_enable();
 
-	kmem_cache_init_late(); printk("	kmem_cache_init_late();\n");
+	kmem_cache_init_late();
 
 	/*
 	 * HACK ALERT! This is early. We're enabling the console before
@@ -616,14 +610,14 @@ printk("call rcu_init\n");
 		panic("Too many boot %s vars at `%s'", panic_later,
 		      panic_param);
 
-	lockdep_info(); printk("	lockdep_info();\n");
+	lockdep_info();
 
 	/*
 	 * Need to run this when irqs are enabled, because it wants
 	 * to self-test [hard/soft]-irqs on/off lock inversion bugs
 	 * too:
 	 */
-	locking_selftest(); printk("	locking_selftest();\n");
+	locking_selftest();
 
 #ifdef CONFIG_BLK_DEV_INITRD
 	if (initrd_start && !initrd_below_start_ok &&
@@ -634,18 +628,18 @@ printk("call rcu_init\n");
 		initrd_start = 0;
 	}
 #endif
-	page_ext_init(); printk("	page_ext_init();\n");
-	debug_objects_mem_init(); printk("	debug_objects_mem_init();\n");
-	kmemleak_init(); printk("	kmemleak_init();\n");
-	setup_per_cpu_pageset(); printk("	setup_per_cpu_pageset();\n");
-	numa_policy_init(); printk("	numa_policy_init();\n");
+	page_ext_init();
+	debug_objects_mem_init();
+	kmemleak_init();
+	setup_per_cpu_pageset();
+	numa_policy_init();
 	if (late_time_init)
 		late_time_init();
-	sched_clock_init(); printk("	sched_clock_init();\n");
-	calibrate_delay(); printk("	calibrate_delay();\n");
-	pidmap_init(); printk("	pidmap_init();\n");
-	anon_vma_init(); printk("	anon_vma_init();\n");
-	acpi_early_init(); printk("	acpi_early_init();\n");
+	sched_clock_init();
+	calibrate_delay();
+	pidmap_init();
+	anon_vma_init();
+	acpi_early_init();
 #ifdef CONFIG_X86
 	if (efi_enabled(EFI_RUNTIME_SERVICES))
 		efi_enter_virtual_mode();
@@ -654,39 +648,39 @@ printk("call rcu_init\n");
 	/* Should be run before the first non-init thread is created */
 	init_espfix_bsp();
 #endif
-	thread_info_cache_init(); printk("	thread_info_cache_init();\n");
-	cred_init(); printk("	cred_init();\n");
-	fork_init(); printk("	fork_init();\n");
-	proc_caches_init(); printk("	proc_caches_init();\n");
-	buffer_init(); printk("	buffer_init();\n");
-	key_init(); printk("	key_init();\n");
-	security_init(); printk("	security_init();\n");
-	dbg_late_init(); printk("	dbg_late_init();\n");
+	thread_info_cache_init();
+	cred_init();
+	fork_init();
+	proc_caches_init();
+	buffer_init();
+	key_init();
+	security_init();
+	dbg_late_init();
 	vfs_caches_init();
-	signals_init(); printk("	signals_init();\n");
+	signals_init();
 	/* rootfs populating might need page-writeback */
-	page_writeback_init(); printk("	page_writeback_init();\n");
-	proc_root_init(); printk("	proc_root_init();\n");
-	nsfs_init(); printk("	nsfs_init();\n");
-	cpuset_init(); printk("	cpuset_init();\n");
-	cgroup_init(); printk("	cgroup_init();\n");
-	taskstats_init_early(); printk("	taskstats_init_early();\n");
-	delayacct_init(); printk("	delayacct_init();\n");
+	page_writeback_init();
+	proc_root_init();
+	nsfs_init();
+	cpuset_init();
+	cgroup_init();
+	taskstats_init_early();
+	delayacct_init();
 
-	check_bugs(); printk("	check_bugs();\n");
+	check_bugs();
 
-	acpi_subsystem_init(); printk("	acpi_subsystem_init();\n");
-	sfi_init_late(); printk("	sfi_init_late();\n");
+	acpi_subsystem_init();
+	sfi_init_late();
 
 	if (efi_enabled(EFI_RUNTIME_SERVICES)) {
-		efi_late_init(); printk("		efi_late_init();\n");
-		efi_free_boot_services(); printk("		efi_free_boot_services();\n");
+		efi_late_init();
+		efi_free_boot_services();
 	}
 
-	ftrace_init(); printk("	ftrace_init();\n");
+	ftrace_init();
 
 	/* Do the rest non-__init'ed, we're now alive */
-	rest_init(); printk("	rest_init();\n");
+	rest_init();
 }
 
 /* Call all constructor functions linked into the kernel. */
@@ -914,7 +908,6 @@ void __init load_default_modules(void)
 static int run_init_process(const char *init_filename)
 {
 	argv_init[0] = init_filename;
-printk("run init proc with %s\n", argv_init[0]);
 	return do_execve(getname_kernel(init_filename),
 		(const char __user *const __user *)argv_init,
 		(const char __user *const __user *)envp_init);
@@ -953,9 +946,7 @@ static int __ref kernel_init(void *unused)
 	rcu_end_inkernel_boot();
 
 	if (ramdisk_execute_command) {
-printk("run init proc?\n");
 		ret = run_init_process(ramdisk_execute_command);
-printk("Try to run %s, get %d\n", ramdisk_execute_command, ret);
 		if (!ret)
 			return 0;
 		pr_err("Failed to execute %s (error %d)\n",
@@ -1032,11 +1023,9 @@ static noinline void __init kernel_init_freeable(void)
 	if (!ramdisk_execute_command)
 		ramdisk_execute_command = "/init";
 
-	printk("sys access for %s is %d\n", ramdisk_execute_command, sys_access((const char __user *) ramdisk_execute_command, 0));
 	if (sys_access((const char __user *) ramdisk_execute_command, 0) != 0) {
 		ramdisk_execute_command = NULL;
 		prepare_namespace();
-printk("namespace prepared\n");
 	}
 
 	/*
@@ -1050,5 +1039,4 @@ printk("namespace prepared\n");
 
 	integrity_load_keys();
 	load_default_modules();
-printk("all done ? \n");
 }

@@ -105,13 +105,11 @@ static RADIX_TREE(irq_desc_tree, GFP_KERNEL);
 
 static void irq_insert_desc(unsigned int irq, struct irq_desc *desc)
 {
-printk("%s: insert %d\n", __func__, irq);
 	radix_tree_insert(&irq_desc_tree, irq, desc);
 }
 
 struct irq_desc *irq_to_desc(unsigned int irq)
 {
-//printk("%s: insert %d\n", __func__, irq);
 	return radix_tree_lookup(&irq_desc_tree, irq);
 }
 EXPORT_SYMBOL(irq_to_desc);
@@ -147,7 +145,6 @@ static struct irq_desc *alloc_desc(int irq, int node, struct module *owner)
 {
 	struct irq_desc *desc;
 	gfp_t gfp = GFP_KERNEL;
-printk("%s: %d\n", __func__, irq);
 
 	desc = kzalloc_node(sizeof(*desc), gfp, node);
 	if (!desc)
@@ -251,6 +248,7 @@ int __init early_irq_init(void)
 
 	/* Let arch update nr_irqs and return the nr of preallocated irqs */
 	initcnt = arch_probe_nr_irqs();
+	printk(KERN_INFO "NR_IRQS:%d nr_irqs:%d %d\n", NR_IRQS, nr_irqs, initcnt);
 
 	if (WARN_ON(nr_irqs > IRQ_BITMAP_BITS))
 		nr_irqs = IRQ_BITMAP_BITS;
@@ -303,7 +301,6 @@ int __init early_irq_init(void)
 
 struct irq_desc *irq_to_desc(unsigned int irq)
 {
-printk("%s: %d\n", __func__, irq);
 	return (irq < NR_IRQS) ? irq_desc + irq : NULL;
 }
 EXPORT_SYMBOL(irq_to_desc);

@@ -720,7 +720,7 @@ static void __init trim_snb_memory(void)
 	 * already been reserved.
 	 */
 	memblock_reserve(0, 1<<20);
-
+	
 	for (i = 0; i < ARRAY_SIZE(bad_pages); i++) {
 		if (memblock_reserve(bad_pages[i], PAGE_SIZE))
 			printk(KERN_WARNING "failed to reserve 0x%08lx\n",
@@ -812,7 +812,7 @@ static void __init trim_low_memory_range(void)
 {
 	memblock_reserve(0, ALIGN(reserve_low, PAGE_SIZE));
 }
-
+	
 /*
  * Dump out kernel offset information on panic.
  */
@@ -988,7 +988,6 @@ void __init setup_arch(char **cmdline_p)
 	memblock_x86_reserve_range_setup_data();
 
 	if (acpi_mps_check()) {
-printk("acpi_mps_check() says no\n");
 #ifdef CONFIG_X86_LOCAL_APIC
 		disable_apic = 1;
 #endif
@@ -1070,7 +1069,6 @@ printk("acpi_mps_check() says no\n");
 	/*
 	 * Find and reserve possible boot-time SMP configuration:
 	 */
-
 	find_smp_config();
 
 	reserve_ibft_region();
@@ -1120,14 +1118,13 @@ printk("acpi_mps_check() says no\n");
 	trim_platform_memory_ranges();
 	trim_low_memory_range();
 
-{	init_mem_mapping();early_printk("	init_mem_mapping();\n");}
+	init_mem_mapping();
 
-{	early_trap_pf_init();early_printk("	early_trap_pf_init();\n");}
+	early_trap_pf_init();
 
 #ifndef CONFIG_VMMCP
 	setup_real_mode();
 #endif
-
 
 	memblock_set_current_limit(get_max_mapped());
 
@@ -1137,50 +1134,50 @@ printk("acpi_mps_check() says no\n");
 
 #ifdef CONFIG_PROVIDE_OHCI1394_DMA_INIT
 	if (init_ohci1394_dma_early)
-{		init_ohci1394_dma_on_all_controllers();early_printk("		init_ohci1394_dma_on_all_controllers();\n");}
+		init_ohci1394_dma_on_all_controllers();
 #endif
 	/* Allocate bigger log buffer */
 	setup_log_buf(1);
 
-{	reserve_initrd();early_printk("	reserve_initrd();\n");}
+	reserve_initrd();
 
 #if defined(CONFIG_ACPI) && defined(CONFIG_BLK_DEV_INITRD)
 	acpi_initrd_override((void *)initrd_start, initrd_end - initrd_start);
 #endif
 
-{	vsmp_init();early_printk("	vsmp_init();\n");}
+	vsmp_init();
 
-{	io_delay_init();early_printk("	io_delay_init();\n");}
+	io_delay_init();
 
 	/*
 	 * Parse the ACPI tables for possible boot-time SMP configuration.
 	 */
-{	acpi_boot_table_init();early_printk("	acpi_boot_table_init();\n");}
+	acpi_boot_table_init();
 
-{	early_acpi_boot_init();early_printk("	early_acpi_boot_init();\n");}
+	early_acpi_boot_init();
 
-{	initmem_init();early_printk("	initmem_init();\n");}
+	initmem_init();
 	dma_contiguous_reserve(max_pfn_mapped << PAGE_SHIFT);
 
 	/*
 	 * Reserve memory for crash kernel after SRAT is parsed so that it
 	 * won't consume hotpluggable memory.
 	 */
-{	reserve_crashkernel();early_printk("	reserve_crashkernel();\n");}
+	reserve_crashkernel();
 
-{	memblock_find_dma_reserve();early_printk("	memblock_find_dma_reserve();\n");}
+	memblock_find_dma_reserve();
 
 #ifdef CONFIG_KVM_GUEST
-{	kvmclock_init();early_printk("	kvmclock_init();\n");}
+	kvmclock_init();
 #endif
 
-{	x86_init.paging.pagetable_init();early_printk("	x86_init.paging.pagetable_init();\n");}
+	x86_init.paging.pagetable_init();
 
-{	kasan_init();early_printk("	kasan_init();\n");}
+	kasan_init();
 
 	if (boot_cpu_data.cpuid_level >= 0) {
 		/* A CPU has %cr4 if and only if it has CPUID */
-{		mmu_cr4_features = __read_cr4();early_printk("		mmu_cr4_features = __read_cr4();\n");}
+		mmu_cr4_features = __read_cr4();
 		if (trampoline_cr4_features)
 			*trampoline_cr4_features = mmu_cr4_features;
 	}
@@ -1200,42 +1197,42 @@ printk("acpi_mps_check() says no\n");
 			min(KERNEL_PGD_PTRS, KERNEL_PGD_BOUNDARY));
 #endif
 
-{	tboot_probe();early_printk("	tboot_probe();\n");}
+	tboot_probe();
 
-{	map_vsyscall();early_printk("	map_vsyscall();\n");}
+	map_vsyscall();
 
-{	generic_apic_probe();early_printk("	generic_apic_probe();\n");}
+	generic_apic_probe();
 
-{	early_quirks();early_printk("	early_quirks();\n");}
+	early_quirks();
 
 	/*
 	 * Read APIC and some other early information from ACPI tables.
 	 */
-{	acpi_boot_init();early_printk("	acpi_boot_init();\n");}
-{	sfi_init();early_printk("	sfi_init();\n");}
-{	x86_dtb_init();early_printk("	x86_dtb_init();\n");}
+	acpi_boot_init();
+	sfi_init();
+	x86_dtb_init();
 
 	/*
 	 * get boot-time SMP configuration:
 	 */
 	if (smp_found_config)
-{		get_smp_config();early_printk("		get_smp_config();\n");}
+		get_smp_config();
 
-{	prefill_possible_map();early_printk("	prefill_possible_map();\n");}
+	prefill_possible_map();
 
-{	init_cpu_to_node();early_printk("	init_cpu_to_node();\n");}
+	init_cpu_to_node();
 
-{	init_apic_mappings();early_printk("	init_apic_mappings();\n");}
-{	io_apic_init_mappings();early_printk("	io_apic_init_mappings();\n");}
+	init_apic_mappings();
+	io_apic_init_mappings();
 
-{	kvm_guest_init();early_printk("	kvm_guest_init();\n");}
+	kvm_guest_init();
 
-{	e820_reserve_resources();early_printk("	e820_reserve_resources();\n");}
+	e820_reserve_resources();
 	e820_mark_nosave_regions(max_low_pfn);
 
-{	x86_init.resources.reserve_resources();early_printk("	x86_init.resources.reserve_resources();\n");}
+	x86_init.resources.reserve_resources();
 
-{	e820_setup_gap();early_printk("	e820_setup_gap();\n");}
+	e820_setup_gap();
 
 #ifdef CONFIG_VT
 #if defined(CONFIG_VGA_CONSOLE)
@@ -1245,19 +1242,19 @@ printk("acpi_mps_check() says no\n");
 	conswitchp = &dummy_con;
 #endif
 #endif
-{	x86_init.oem.banner();early_printk("	x86_init.oem.banner();\n");}
+	x86_init.oem.banner();
 
-{	x86_init.timers.wallclock_init();early_printk("	x86_init.timers.wallclock_init();\n");}
+	x86_init.timers.wallclock_init();
 
-{	mcheck_init();early_printk("	mcheck_init();\n");}
+	mcheck_init();
 
-{	arch_init_ideal_nops();early_printk("	arch_init_ideal_nops();\n");}
+	arch_init_ideal_nops();
 
 	register_refined_jiffies(CLOCK_TICK_RATE);
 
 #ifdef CONFIG_EFI
 	if (efi_enabled(EFI_BOOT))
-{		efi_apply_memmap_quirks();early_printk("		efi_apply_memmap_quirks();\n");}
+		efi_apply_memmap_quirks();
 #endif
 }
 

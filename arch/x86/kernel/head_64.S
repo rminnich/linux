@@ -65,6 +65,14 @@ startup_64:
 	 * tables and then reload them.
 	 */
 
+       /*
+        * Setup stack for verify_cpu(). "-8" because stack_start is defined
+        * this way, see below. Our best guess is a NULL ptr for stack
+        * termination heuristics and we don't want to break anything which
+        * might depend on it (kgdb, ...).
+        */
+       leaq    (__end_init_task - 8)(%rip), %rsp
+
 	/* Sanitize CPU configuration */
 	call verify_cpu
 
@@ -183,15 +191,6 @@ ENTRY(secondary_startup_64)
 	movq	$(init_level4_pgt - __START_KERNEL_map), %rax
 1:
 
-/* Define our early WAVE for output. */
-#if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
-	#define WAVE(x) movl $x, %edi; vmcall
-#endif
-
-#if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
-	WAVE('A')
-#endif
-
 #if !defined(CONFIG_VMMCP) || CONFIG_VMMCP==0
 	/* VMMCP: PAE and PGE are already set as desired if CONFIG_VMMCP
 			  is enabled, so in that case  we skip this. */
@@ -200,9 +199,6 @@ ENTRY(secondary_startup_64)
 	movq	%rcx, %cr4
 #endif
 
-#if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
-	WAVE('k')
-#endif
 	/* Setup early boot stage 4 level pagetables. */
 	addq	phys_base(%rip), %rax
 	movq	%rax, %cr3
@@ -211,9 +207,7 @@ ENTRY(secondary_startup_64)
 	movq	$1f, %rax
 	jmp	*%rax
 1:
-#if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
-	WAVE('a')
-#endif
+
 	/* Check if nx is implemented */
 	movl	$0x80000001, %eax
 	cpuid
@@ -236,9 +230,7 @@ ENTRY(secondary_startup_64)
 	movl	$CR0_STATE, %eax
 	/* Make changes effective */
 	movq	%rax, %cr0
-#if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
-	WAVE('r')
-#endif
+
 	/* Setup a boot time stack */
 	movq stack_start(%rip), %rsp
 

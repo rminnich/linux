@@ -680,7 +680,6 @@ calibrate_by_pmtimer(long deltapm, long *delta, long *deltatsc)
 	return 0;
 }
 
-#ifdef CONFIG_VMMCP
 static int __init lapictimerfreq(char *str)
 {
 	get_option(&str, &lapic_timer_frequency);
@@ -688,7 +687,6 @@ static int __init lapictimerfreq(char *str)
 }
 
 early_param("lapictimerfreq", lapictimerfreq);
-#endif
 
 static int __init calibrate_APIC_clock(void)
 {
@@ -1845,14 +1843,6 @@ static void __smp_spurious_interrupt(u8 vector)
 	/* see sw-dev-man vol 3, chapter 7.4.13.5 */
 	pr_info("spurious APIC interrupt through vector %02x on CPU#%d, "
 		"should never happen.\n", vector, smp_processor_id());
-
-	v = apic_read(0x280);
-	// CRAZY IDEA HERE.
-	//apic_write(0xF0, 0x01E5);
-	pr_info("APIC errors: 0x%08x\n", v);
-
-	//vroom();
-	//BUG();
 }
 
 __visible void smp_spurious_interrupt(struct pt_regs *regs)

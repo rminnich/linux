@@ -1376,6 +1376,7 @@ void __init print_IO_APICs(void)
 	printk(KERN_INFO ".................................... done.\n");
 }
 
+/* Where if anywhere is the i8259 connect in external int mode */
 static struct { int pin, apic; } ioapic_i8259 = { -1, -1 };
 
 void __init enable_IO_APIC(void)
@@ -2658,10 +2659,8 @@ int mp_find_ioapic(u32 gsi)
 {
 	int i;
 
-	if (nr_ioapics == 0) {
-		printk("-------------> %s: no io apics\n", __func__);
+	if (nr_ioapics == 0)
 		return -1;
-	}
 
 	/* Find the IOAPIC that manages this GSI. */
 	for_each_ioapic(i) {
@@ -2732,7 +2731,7 @@ int mp_register_ioapic(int id, u32 address, u32 gsi_base,
 	struct mp_ioapic_gsi *gsi_cfg;
 	int idx, ioapic, entries;
 	u32 gsi_end;
-printk("============================> %s\n", __func__);
+
 	if (!address) {
 		pr_warn("Bogus (zero) I/O APIC address found, skipping!\n");
 		return -EINVAL;
@@ -2769,7 +2768,6 @@ printk("============================> %s\n", __func__);
 	 * and to prevent reprogramming of IOAPIC pins (PCI GSIs).
 	 */
 	entries = io_apic_get_redir_entries(idx);
-printk("idx %d, redir entries %d\n", idx, entries);
 	gsi_end = gsi_base + entries - 1;
 	for_each_ioapic(ioapic) {
 		gsi_cfg = mp_ioapic_gsi_routing(ioapic);
@@ -2811,7 +2809,7 @@ printk("idx %d, redir entries %d\n", idx, entries);
 
 	/* Set nr_registers to mark entry present */
 	ioapics[idx].nr_registers = entries;
-printk("----------------------------------> \n");
+
 	pr_info("IOAPIC[%d]: apic_id %d, version %d, address 0x%x, GSI %d-%d\n",
 		idx, mpc_ioapic_id(idx),
 		mpc_ioapic_ver(idx), mpc_ioapic_addr(idx),
