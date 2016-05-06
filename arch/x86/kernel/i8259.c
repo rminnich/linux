@@ -417,7 +417,7 @@ struct legacy_pic default_legacy_pic = {
 	.make_irq = make_8259A_irq,
 };
 
-struct legacy_pic *legacy_pic = &default_legacy_pic;
+struct legacy_pic *legacy_pic = &null_legacy_pic; // &default_legacy_pic;
 
 static int __init i8259A_init_ops(void)
 {
