@@ -89,6 +89,7 @@ void __init setup_real_mode(void)
 #endif
 }
 
+#ifndef CONFIG_VMMCP
 /*
  * reserve_real_mode() gets called very early, to guarantee the
  * availability of low memory. This is before the proper kernel page
@@ -119,4 +120,6 @@ static int __init set_real_mode_permissions(void)
 
 	return 0;
 }
+
 early_initcall(set_real_mode_permissions);
+#endif
