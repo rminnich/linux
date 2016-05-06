@@ -38,6 +38,11 @@ void __init reserve_ebda_region(void)
 	 * that the paravirt case can handle memory setup
 	 * correctly, without our help.
 	 */
+
+	#if defined(CONFIG_VMMCP) && CONFIG_VMMCP==1
+		return;
+	#endif
+
 	if (paravirt_enabled())
 		return;
 

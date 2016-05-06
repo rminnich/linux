@@ -58,7 +58,7 @@ obj-$(CONFIG_MICROCODE)			+= microcode/
 
 obj-$(CONFIG_X86_LOCAL_APIC)		+= perfctr-watchdog.o perf_event_amd_ibs.o
 
-obj-$(CONFIG_HYPERVISOR_GUEST)		+= vmware.o hypervisor.o mshyperv.o
+obj-$(CONFIG_HYPERVISOR_GUEST)		+= vmmcp.o vmware.o hypervisor.o mshyperv.o
 
 ifdef CONFIG_X86_FEATURE_NAMES
 quiet_cmd_mkcapflags = MKCAP   $@
