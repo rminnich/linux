@@ -65,6 +65,7 @@ startup_64:
 	 * tables and then reload them.
 	 */
 
+
        /*
         * Setup stack for verify_cpu(). "-8" because stack_start is defined
         * this way, see below. Our best guess is a NULL ptr for stack
@@ -193,7 +194,10 @@ ENTRY(secondary_startup_64)
 
 	/* Enable PAE mode and PGE */
 	movl	$(X86_CR4_PAE | X86_CR4_PGE), %ecx
+#ifndef CONFIG_VMMCP
+	/* That's already done in VMMCP. */
 	movq	%rcx, %cr4
+#endif
 
 	/* Setup early boot stage 4 level pagetables. */
 	addq	phys_base(%rip), %rax
