@@ -289,7 +289,7 @@ static bool vm_notify(struct virtqueue *vq)
 }
 
 /* Notify all virtqueues on an interrupt. */
-static irqreturn_t vm_interrupt(int irq, void *opaque)
+irqreturn_t vm_interrupt(int irq, void *opaque)
 {
 	struct virtio_mmio_device *vm_dev = opaque;
 	struct virtio_mmio_vq_info *info;
@@ -479,6 +479,13 @@ error_available:
 	return ERR_PTR(err);
 }
 
+static void *hugme;
+static int hugirq;
+
+void vroom(void)
+{
+	vm_interrupt(hugirq, hugme);
+}
 static int vm_find_vqs(struct virtio_device *vdev, unsigned nvqs,
 		       struct virtqueue *vqs[],
 		       vq_callback_t *callbacks[],
@@ -489,7 +496,12 @@ static int vm_find_vqs(struct virtio_device *vdev, unsigned nvqs,
 	int i, err;
 
 	err = request_irq(irq, vm_interrupt, IRQF_SHARED,
-			dev_name(&vdev->dev), vm_dev);
+			  dev_name(&vdev->dev), vm_dev);
+
+	printk("vm_dev is %p\n", vm_dev);
+	hugme = vm_dev;
+	hugirq = irq;
+
 	if (err)
 		return err;
 
@@ -556,11 +568,11 @@ static int virtio_mmio_probe(struct platform_device *pdev)
 	vm_dev->base = devm_ioremap(&pdev->dev, mem->start, resource_size(mem));
 	if (vm_dev->base == NULL)
 		return -EFAULT;
-
 	/* Check magic value */
 	magic = readl(vm_dev->base + VIRTIO_MMIO_MAGIC_VALUE);
 	if (magic != ('v' | 'i' << 8 | 'r' << 16 | 't' << 24)) {
-		dev_warn(&pdev->dev, "Wrong magic value 0x%08lx!\n", magic);
+		dev_warn(&pdev->dev, "Wrong magic value 0x%08lx @ %p!\n", magic,
+			 vm_dev->base + VIRTIO_MMIO_MAGIC_VALUE);
 		return -ENODEV;
 	}
 

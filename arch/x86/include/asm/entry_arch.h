@@ -27,6 +27,11 @@ BUILD_INTERRUPT3(kvm_posted_intr_wakeup_ipi, POSTED_INTR_WAKEUP_VECTOR,
 		 smp_kvm_posted_intr_wakeup_ipi)
 #endif
 
+#ifdef CONFIG_VMMCP
+BUILD_INTERRUPT3(vmmcp_posted_intr_ipi, VMMCP_POSTED_INTR_VECTOR,
+		 smp_vmmcp_posted_intr_ipi)
+#endif
+
 /*
  * every pentium local APIC has two 'local interrupts', with a
  * soft-definable vector attached to both interrupts, one of

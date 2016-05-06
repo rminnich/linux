@@ -100,6 +100,11 @@
 #define POSTED_INTR_VECTOR		0xf2
 #endif
 
+/* Vector for VMMCP to deliver posted interrupt IPI */
+#ifdef CONFIG_VMMCP
+#define VMMCP_POSTED_INTR_VECTOR	0xe5
+#endif
+
 /*
  * Local APIC timer IRQ vector is on a different priority level,
  * to work around the 'lost local interrupt if more than 2 IRQ
