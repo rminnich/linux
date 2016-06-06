@@ -103,6 +103,7 @@
 /* Vector for VMMCP to deliver posted interrupt IPI */
 #ifdef CONFIG_VMMCP
 #define VMMCP_POSTED_INTR_VECTOR	0xe5
+#define VMMCP_POSTED_INTR_VECTOR2	0xe6
 #endif
 
 /*

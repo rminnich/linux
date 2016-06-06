@@ -18,6 +18,7 @@ typedef struct {
 #endif
 #ifdef CONFIG_VMMCP
 	unsigned int vmmcp_posted_intr_ipis;
+	unsigned int vmmcp_posted_intr_ipis2;
 #endif
 	unsigned int x86_platform_ipis;	/* arch dependent */
 	unsigned int apic_perf_irqs;
