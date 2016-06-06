@@ -689,6 +689,7 @@ apicinterrupt X86_PLATFORM_IPI_VECTOR		x86_platform_ipi		smp_x86_platform_ipi
 
 #ifdef CONFIG_VMMCP
 apicinterrupt3 VMMCP_POSTED_INTR_VECTOR		vmmcp_posted_intr_ipi		smp_vmmcp_posted_intr_ipi
+apicinterrupt3 VMMCP_POSTED_INTR_VECTOR2	vmmcp_posted_intr_ipi2		smp_vmmcp_posted_intr_ipi2
 #endif
 
 #ifdef CONFIG_HAVE_KVM

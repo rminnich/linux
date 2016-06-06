@@ -30,7 +30,7 @@ EXPORT_PER_CPU_SYMBOL(irq_regs);
 
 atomic_t irq_err_count;
 
-void vroom(void);
+void vroom(int);
 
 /* Function pointer for generic interrupt vector handling */
 void (*x86_platform_ipi_callback)(void) = NULL;
@@ -290,7 +290,17 @@ __visible void smp_vmmcp_posted_intr_ipi(struct pt_regs *regs)
 	inc_irq_stat(vmmcp_posted_intr_ipis);
 	exiting_irq();
 	set_irq_regs(old_regs);
-	vroom();
+	vroom(0);
+}
+
+__visible void smp_vmmcp_posted_intr_ipi2(struct pt_regs *regs)
+{
+	struct pt_regs *old_regs = set_irq_regs(regs);
+	entering_ack_irq();
+	inc_irq_stat(vmmcp_posted_intr_ipis);
+	exiting_irq();
+	set_irq_regs(old_regs);
+	vroom(1);
 }
 
 #endif

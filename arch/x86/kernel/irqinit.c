@@ -155,6 +155,7 @@ static void __init apic_intr_init(void)
 #ifdef CONFIG_VMMCP
 	/* IPI for VMMCP to deliver posted interrupt */
 	alloc_intr_gate(VMMCP_POSTED_INTR_VECTOR, vmmcp_posted_intr_ipi);
+	alloc_intr_gate(VMMCP_POSTED_INTR_VECTOR2, vmmcp_posted_intr_ipi2);
 #endif
 
 	/* IPI vectors for APIC spurious and error interrupts */

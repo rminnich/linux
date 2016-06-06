@@ -479,12 +479,12 @@ error_available:
 	return ERR_PTR(err);
 }
 
-static void *hugme;
-static int hugirq;
+static void *hugme[2];
+static int hugirq[2];
 
-void vroom(void)
+void vroom(int index)
 {
-	vm_interrupt(hugirq, hugme);
+	vm_interrupt(hugirq[index], hugme[index]);
 }
 static int vm_find_vqs(struct virtio_device *vdev, unsigned nvqs,
 		       struct virtqueue *vqs[],
@@ -499,8 +499,16 @@ static int vm_find_vqs(struct virtio_device *vdev, unsigned nvqs,
 			  dev_name(&vdev->dev), vm_dev);
 
 	printk("vm_dev is %p\n", vm_dev);
-	hugme = vm_dev;
-	hugirq = irq;
+	if (irq == 32) {
+		hugme[0] = vm_dev;
+		hugirq[0] = irq;
+		//printk("in the if statement, irq is: %i\n", irq);
+	}
+	else {
+		hugme[1] = vm_dev;
+		hugirq[1] = irq;
+		//printk("in the if statement, irq is: %i\n", irq);
+	}
 
 	if (err)
 		return err;
@@ -684,12 +692,12 @@ static int vm_cmdline_set(const char *device,
 
 static int vm_cmdline_get_device(struct device *dev, void *data)
 {
-	char *buffer = data;
-	unsigned int len = strlen(buffer);
-	struct platform_device *pdev = to_platform_device(dev);
+			char *buffer = data;
+			unsigned int len = strlen(buffer);
+			struct platform_device *pdev = to_platform_device(dev);
 
-	snprintf(buffer + len, PAGE_SIZE - len, "0x%llx@0x%llx:%llu:%d\n",
-			pdev->resource[0].end - pdev->resource[0].start + 1ULL,
+			snprintf(buffer + len, PAGE_SIZE - len, "0x%llx@0x%llx:%llu:%d\n",
+							  pdev->resource[0].end - pdev->resource[0].start + 1ULL,
 			(unsigned long long)pdev->resource[0].start,
 			(unsigned long long)pdev->resource[1].start,
 			pdev->id);
