@@ -2796,6 +2796,13 @@ config X86_DMA_REMAP
 	bool
 	depends on STA2X11
 
+config LinuxBIOS
+	bool "LinuxBIOS support for machines with no firmware"
+	depends on X86_64
+	---help---
+	  LinuxBIOS is for systems that don't set up hardware such as
+	  the IOAPIC but instead let Linux do it.
+
 source "net/Kconfig"
 
 source "drivers/Kconfig"
