@@ -389,6 +389,7 @@ static __initdata DECLARE_COMPLETION(kthreadd_done);
 
 static noinline void __ref rest_init(void)
 {
+	void monitor(void);
 	int pid;
 
 	rcu_scheduler_starting();
@@ -405,6 +406,7 @@ static noinline void __ref rest_init(void)
 	rcu_read_unlock();
 	complete(&kthreadd_done);
 
+	monitor();
 	/*
 	 * The boot idle thread must execute schedule()
 	 * at least once to get things moving:
