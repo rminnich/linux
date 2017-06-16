@@ -3,16 +3,17 @@
 
 #include "lapic_def.h"
 
+extern void *lapic_base;
 static inline __attribute__((always_inline)) unsigned long lapic_read(
 	unsigned long reg)
 {
-	return *((volatile unsigned long *)(LAPIC_DEFAULT_BASE+reg));
+	return *((volatile unsigned long *)(lapic_base+reg));
 }
 
 static inline __attribute__((always_inline)) void lapic_write(unsigned long reg,
 	unsigned long v)
 {
-	*((volatile unsigned long *)(LAPIC_DEFAULT_BASE+reg)) = v;
+	*((volatile unsigned long *)(lapic_base+reg)) = v;
 }
 
 static inline __attribute__((always_inline)) void lapic_wait_icr_idle(void)
@@ -46,7 +47,7 @@ static inline __attribute__((always_inline)) unsigned long lapicid(void)
 
 static inline void lapic_write_atomic(unsigned long reg, unsigned long v)
 {
-	(void)xchg((volatile unsigned long *)(LAPIC_DEFAULT_BASE+reg), v);
+	(void)xchg((volatile unsigned long *)(lapic_base+reg), v);
 }
 
 

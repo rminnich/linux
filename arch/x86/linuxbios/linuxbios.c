@@ -16,12 +16,16 @@
 
 #include <linux/console.h>
 #include <asm/setup.h>
+#include <asm/io.h>
+#include <asm/msr.h>
+#include "lapic.h"
 
 static int __init setup_linuxbios(char *_)
 {
 	void monitor(void);
-	printk("========================================\n");
+	early_printk("========================================\n");
 	monitor();
+	setup_lapic();
 	return 0;
 }
 
