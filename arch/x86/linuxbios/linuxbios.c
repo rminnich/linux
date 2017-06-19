@@ -22,9 +22,9 @@
 
 static int __init setup_linuxbios(char *_)
 {
-	void monitor(void);
+	void monitor(char *);
 	early_printk("========================================\n");
-	monitor();
+	monitor("linuxbios");
 	setup_lapic();
 	return 0;
 }

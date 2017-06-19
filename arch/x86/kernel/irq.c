@@ -230,6 +230,7 @@ __visible unsigned int __irq_entry do_IRQ(struct pt_regs *regs)
 
 	entering_irq();
 
+	outb('.', 0x3f8);
 	/* entering_irq() tells RCU that we're not quiescent.  Check it. */
 	RCU_LOCKDEP_WARN(!rcu_is_watching(), "IRQ failed to wake up RCU");
 

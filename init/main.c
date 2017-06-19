@@ -386,27 +386,35 @@ static void __init setup_command_line(char *command_line)
  */
 
 static __initdata DECLARE_COMPLETION(kthreadd_done);
-
+void monitor(char *);
 static noinline void __ref rest_init(void)
 {
-	void monitor(void);
+
 	int pid;
 
+	monitor("hi");
 	rcu_scheduler_starting();
+	monitor("hi");
 	/*
 	 * We need to spawn init first so that it obtains pid 1, however
 	 * the init task will end up wanting to create kthreads, which, if
 	 * we schedule it before we create kthreadd, will OOPS.
 	 */
 	kernel_thread(kernel_init, NULL, CLONE_FS);
+	monitor("hi");
 	numa_default_policy();
+	monitor("hi");
 	pid = kernel_thread(kthreadd, NULL, CLONE_FS | CLONE_FILES);
+	monitor("hi");
 	rcu_read_lock();
+	monitor("hi");
 	kthreadd_task = find_task_by_pid_ns(pid, &init_pid_ns);
+	monitor("hi");
 	rcu_read_unlock();
+	monitor("hi");
 	complete(&kthreadd_done);
 
-	monitor();
+	monitor("hi");
 	/*
 	 * The boot idle thread must execute schedule()
 	 * at least once to get things moving:
@@ -515,13 +523,13 @@ asmlinkage __visible void __init start_kernel(void)
 	pr_notice("%s", linux_banner);
 	setup_arch(&command_line);
 	mm_init_cpumask(&init_mm);
-	setup_command_line(command_line);
-	setup_nr_cpu_ids();
-	setup_per_cpu_areas();
-	boot_cpu_state_init();
-	smp_prepare_boot_cpu();	/* arch-specific boot-cpu hooks */
+	setup_command_line(command_line); monitor("	setup_command_line(command_line);");
+	setup_nr_cpu_ids(); monitor("	setup_nr_cpu_ids();");
+	setup_per_cpu_areas(); monitor("	setup_per_cpu_areas();");
+	boot_cpu_state_init(); monitor("	boot_cpu_state_init();");
+	smp_prepare_boot_cpu(); monitor("	smp_prepare_boot_cpu();");	/* arch-specific boot-cpu hooks */
 
-	build_all_zonelists(NULL, NULL);
+	build_all_zonelists(NULL, NULL); monitor("	build_all_zonelists(NULL, NULL);");
 	page_alloc_init();
 
 	pr_notice("Kernel command line: %s\n", boot_command_line);
@@ -540,19 +548,19 @@ asmlinkage __visible void __init start_kernel(void)
 	 * These use large bootmem allocations and must precede
 	 * kmem_cache_init()
 	 */
-	setup_log_buf(0);
-	pidhash_init();
-	vfs_caches_init_early();
-	sort_main_extable();
-	trap_init();
-	mm_init();
+	setup_log_buf(0); monitor("	setup_log_buf(0);");
+	pidhash_init(); monitor("	pidhash_init();");
+	vfs_caches_init_early(); monitor("	vfs_caches_init_early();");
+	sort_main_extable(); monitor("	sort_main_extable();");
+	trap_init(); monitor("	trap_init();");
+	mm_init(); monitor("	mm_init();");
 
 	/*
 	 * Set up the scheduler prior starting any interrupts (such as the
 	 * timer interrupt). Full topology setup happens at smp_init()
 	 * time - but meanwhile we still have a functioning scheduler.
 	 */
-	sched_init();
+	sched_init(); monitor("	sched_init();");
 	/*
 	 * Disable preemption - early bootup scheduling is extremely
 	 * fragile until we cpu_idle() for the first time.
@@ -577,44 +585,44 @@ asmlinkage __visible void __init start_kernel(void)
 
 	context_tracking_init();
 	/* init some links before init_ISA_irqs() */
-	early_irq_init();
-	init_IRQ();
-	tick_init();
-	rcu_init_nohz();
-	init_timers();
-	hrtimers_init();
-	softirq_init();
-	timekeeping_init();
-	time_init();
-	sched_clock_postinit();
-	printk_safe_init();
-	perf_event_init();
-	profile_init();
-	call_function_init();
-	WARN(!irqs_disabled(), "Interrupts were enabled early\n");
-	early_boot_irqs_disabled = false;
-	local_irq_enable();
+	early_irq_init(); monitor("	early_irq_init();");
+	init_IRQ(); monitor("	init_IRQ();");
+	tick_init(); monitor("	tick_init();");
+	rcu_init_nohz(); monitor("	rcu_init_nohz();");
+	init_timers(); monitor("	init_timers();");
+	hrtimers_init(); monitor("	hrtimers_init();");
+	softirq_init(); monitor("	softirq_init();");
+	timekeeping_init(); monitor("	timekeeping_init();");
+	time_init(); monitor("	time_init();");
+	sched_clock_postinit(); monitor("	sched_clock_postinit();");
+	printk_safe_init(); monitor("	printk_safe_init();");
+	perf_event_init(); monitor("	perf_event_init();");
+	profile_init(); monitor("	profile_init();");
+	call_function_init(); monitor("	call_function_init();");
+	WARN(!irqs_disabled(), "Interrupts were enabled early\n"); 
+	early_boot_irqs_disabled = false; monitor("	early_boot_irqs_disabled = false;");
+	local_irq_enable(); monitor("	local_irq_enable();");
 
-	kmem_cache_init_late();
+	kmem_cache_init_late(); monitor("	kmem_cache_init_late();");
 
 	/*
 	 * HACK ALERT! This is early. We're enabling the console before
 	 * we've done PCI setups etc, and console_init() must be aware of
 	 * this. But we do want output early, in case something goes wrong.
 	 */
-	console_init();
+	console_init(); monitor("	console_init();");
 	if (panic_later)
 		panic("Too many boot %s vars at `%s'", panic_later,
 		      panic_param);
 
-	lockdep_info();
+	lockdep_info(); monitor("	lockdep_info();");
 
 	/*
 	 * Need to run this when irqs are enabled, because it wants
 	 * to self-test [hard/soft]-irqs on/off lock inversion bugs
 	 * too:
 	 */
-	locking_selftest();
+	locking_selftest(); monitor("	locking_selftest();");
 
 #ifdef CONFIG_BLK_DEV_INITRD
 	if (initrd_start && !initrd_below_start_ok &&
@@ -625,17 +633,17 @@ asmlinkage __visible void __init start_kernel(void)
 		initrd_start = 0;
 	}
 #endif
-	page_ext_init();
-	debug_objects_mem_init();
-	kmemleak_init();
-	setup_per_cpu_pageset();
-	numa_policy_init();
+	page_ext_init(); monitor("	page_ext_init();");
+	debug_objects_mem_init(); monitor("	debug_objects_mem_init();");
+	kmemleak_init(); monitor("	kmemleak_init();");
+	setup_per_cpu_pageset(); monitor("	setup_per_cpu_pageset();");
+	numa_policy_init(); monitor("	numa_policy_init();");
 	if (late_time_init)
 		late_time_init();
-	calibrate_delay();
-	pidmap_init();
-	anon_vma_init();
-	acpi_early_init();
+	calibrate_delay(); monitor("	calibrate_delay();");
+	pidmap_init(); monitor("	pidmap_init();");
+	anon_vma_init(); monitor("	anon_vma_init();");
+	acpi_early_init(); monitor("	acpi_early_init();");
 #ifdef CONFIG_X86
 	if (efi_enabled(EFI_RUNTIME_SERVICES))
 		efi_enter_virtual_mode();
@@ -644,38 +652,38 @@ asmlinkage __visible void __init start_kernel(void)
 	/* Should be run before the first non-init thread is created */
 	init_espfix_bsp();
 #endif
-	thread_stack_cache_init();
-	cred_init();
-	fork_init();
-	proc_caches_init();
-	buffer_init();
-	key_init();
-	security_init();
-	dbg_late_init();
-	vfs_caches_init();
-	pagecache_init();
-	signals_init();
-	proc_root_init();
-	nsfs_init();
-	cpuset_init();
-	cgroup_init();
-	taskstats_init_early();
-	delayacct_init();
+	thread_stack_cache_init(); monitor("	thread_stack_cache_init();");
+	cred_init(); monitor("	cred_init();");
+	fork_init(); monitor("	fork_init();");
+	proc_caches_init(); monitor("	proc_caches_init();");
+	buffer_init(); monitor("	buffer_init();");
+	key_init(); monitor("	key_init();");
+	security_init(); monitor("	security_init();");
+	dbg_late_init(); monitor("	dbg_late_init();");
+	vfs_caches_init(); monitor("	vfs_caches_init();");
+	pagecache_init(); monitor("	pagecache_init();");
+	signals_init(); monitor("	signals_init();");
+	proc_root_init(); monitor("	proc_root_init();");
+	nsfs_init(); monitor("	nsfs_init();");
+	cpuset_init(); monitor("	cpuset_init();");
+	cgroup_init(); monitor("	cgroup_init();");
+	taskstats_init_early(); monitor("	taskstats_init_early();");
+	delayacct_init(); monitor("	delayacct_init();");
 
-	check_bugs();
+	check_bugs(); monitor("	check_bugs();");
 
-	acpi_subsystem_init();
-	arch_post_acpi_subsys_init();
-	sfi_init_late();
+	acpi_subsystem_init(); monitor("	acpi_subsystem_init();");
+	arch_post_acpi_subsys_init(); monitor("	arch_post_acpi_subsys_init();");
+	sfi_init_late(); monitor("	sfi_init_late();");
 
 	if (efi_enabled(EFI_RUNTIME_SERVICES)) {
-		efi_free_boot_services();
+		efi_free_boot_services(); monitor("		efi_free_boot_services();");
 	}
 
-	ftrace_init();
+	ftrace_init(); monitor("	ftrace_init();");
 
 	/* Do the rest non-__init'ed, we're now alive */
-	rest_init();
+	rest_init(); monitor("	rest_init();");
 }
 
 /* Call all constructor functions linked into the kernel. */

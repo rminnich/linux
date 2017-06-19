@@ -507,11 +507,10 @@ int onecmd(int argc, char *argv[], struct hw_trapframe *hw_tf) {
 	}
 	return -1;
 }
-
+	void monitor(char *);
 void __run_mon(uint32_t srcid, long a0, long a1, long a2)
 {
-	void monitor(void);
-	monitor();
+	monitor("__run_mon");
 }
 
 static int runcmd(char *real_buf, struct hw_trapframe *hw_tf) {
@@ -557,12 +556,12 @@ static int getchar(void){
 		;
 	return inb(0x3f8);
 }
-static int readline(char *buf, int buflen, char *prompt, int _)
+static int readline(char *buf, int buflen, char *prompt)
 {
 	char c;
 	int cnt;
 	memset(buf, 0, buflen);
-	early_printk(prompt, _);
+	early_printk("Monitor(%s): ", prompt);
 	for(cnt = 0; cnt < buflen - 1; cnt++) {
 		c = getchar();
 		if (c == '\r') {
@@ -578,7 +577,7 @@ static int readline(char *buf, int buflen, char *prompt, int _)
 	return cnt;
 }
 
-void monitor(void)
+void monitor(char *c)
 {
 	#define MON_CMD_LENGTH 256
 	char buf[MON_CMD_LENGTH];
@@ -590,7 +589,7 @@ void monitor(void)
 	while (1) {
 		/* on occasion, the kernel monitor can migrate (like if you run
 		 * something that blocks / syncs and wakes up on another core) */
-		cnt = readline(buf, MON_CMD_LENGTH, "ROS(Core %d)> ", 0);
+		cnt = readline(buf, MON_CMD_LENGTH, c);
 		if (cnt > 0) {
 			buf[cnt] = 0;
 			if (runcmd(buf, NULL) < 0)
