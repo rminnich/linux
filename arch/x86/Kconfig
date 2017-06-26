@@ -2800,7 +2800,6 @@ config X86_DMA_REMAP
 config LinuxBIOS
 	bool "LinuxBIOS support for machines with no firmware"
 	depends on X86_64
-	select LinuxBIOS
 	---help---
 	  LinuxBIOS is for systems that don't set up hardware such as
 	  the IOAPIC but instead let Linux do it.
@@ -2822,3 +2821,5 @@ source "crypto/Kconfig"
 source "arch/x86/kvm/Kconfig"
 
 source "lib/Kconfig"
+
+source "arch/x86/linuxbios/Kconfig"

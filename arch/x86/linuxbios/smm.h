@@ -20,9 +20,6 @@
 #ifndef CPU_X86_SMM_H
 #define CPU_X86_SMM_H
 
-#include <arch/cpu.h>
-#include <types.h>
-
 #define SMM_DEFAULT_BASE 0x30000
 #define SMM_DEFAULT_SIZE 0x10000
 
@@ -513,7 +510,7 @@ struct smm_runtime {
 	 * initializes this array with a 1:1 mapping. If the APIC ids are not
 	 * contiguous like the 1:1 mapping it is up to the caller of the stub
 	 * loader to adjust this mapping. */
-	u8 apic_id_to_cpu[CONFIG_MAX_CPUS];
+	u8 apic_id_to_cpu[CONFIG_NR_CPUS];
 } __attribute__ ((packed));
 
 struct smm_module_params {

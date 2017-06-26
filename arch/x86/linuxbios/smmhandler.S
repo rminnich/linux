@@ -80,7 +80,7 @@
 .global smm_handler_start
 smm_handler_start:
 	/* print [SMM-x] so we can determine if CPUx went to SMM */
-	movw $CONFIG_TTYS0_BASE, %dx
+	movw $0x3f8, %dx
 	mov $'[', %al
 	outb %al, %dx
 	mov $'S', %al

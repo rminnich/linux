@@ -17,11 +17,12 @@
 #include <linux/console.h>
 #include <asm/setup.h>
 
-void setup_linuxbios(void)
+static int __init setup_linuxbios(char *p)
 {
 	void monitor(void);
-	printk("========================================\n");
+	printk("======================================== %s\n", p);
 	monitor();
+	return 0;
 }
 
 early_param("linuxbios", setup_linuxbios);

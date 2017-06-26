@@ -14,28 +14,10 @@
  * GNU General Public License for more details.
  */
 
-// Make sure no stage 2 code is included:
-#define __PRE_RAM__
-
-// FIXME: Is this piece of code southbridge specific, or
-// can it be cleaned up so this include is not required?
-// It's needed right now because we get our DEFAULT_PMBASE from
-// here.
-#if CONFIG_SOUTHBRIDGE_INTEL_I82801GX
-#include "../../../southbridge/intel/i82801gx/i82801gx.h"
-#elif CONFIG_SOUTHBRIDGE_INTEL_I82801DX
-#include "../../../southbridge/intel/i82801dx/i82801dx.h"
-#elif CONFIG_SOC_INTEL_SCH
-#include "../../../soc/intel/sch/sch.h"
-#elif CONFIG_SOUTHBRIDGE_INTEL_I82801IX
-#include "../../../southbridge/intel/i82801ix/i82801ix.h"
-#else
-#error "Southbridge needs SMM handler support."
-#endif
+#include "i82801ix.h"
 
 #if CONFIG_SMM_TSEG
 #error "Don't use this file with TSEG."
-
 #endif /* CONFIG_SMM_TSEG */
 
 #define LAPIC_ID 0xfee00020
@@ -156,7 +138,7 @@ smm_relocate:
 
 #if 1 || CONFIG_DEBUG_SMM_RELOCATION
 	/* print [SMM-x] so we can determine if CPUx went to SMM */
-	movw $CONFIG_TTYS0_BASE, %dx
+	movw $0x3f8, %dx
 	mov $'[', %al
 	outb %al, %dx
 	mov $'S', %al

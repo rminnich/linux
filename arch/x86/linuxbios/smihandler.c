@@ -14,16 +14,10 @@
  * GNU General Public License for more details.
  */
 
-#include <arch/io.h>
-#include <console/console.h>
-#include <cpu/x86/cache.h>
-#include <cpu/x86/smm.h>
-
-#if CONFIG_SPI_FLASH_SMM
-#include <spi-generic.h>
-#endif
-
-static int do_driver_init = 1;
+#include <linux/console.h>
+#include <asm/setup.h>
+#include <asm/io.h>
+#include "smm.h"
 
 typedef enum { SMI_LOCKED, SMI_UNLOCKED } smi_semaphore;
 
@@ -71,15 +65,9 @@ void io_trap_handler(int smif)
 	/* If a handler function handled a given IO trap, it
 	 * shall return a non-zero value
 	 */
-	printk(BIOS_DEBUG, "SMI function trap 0x%x: ", smif);
+	printk("SMI function trap 0x%x: ", smif);
 
-	if (southbridge_io_trap_handler(smif))
-		return;
-
-	if (mainboard_io_trap_handler(smif))
-		return;
-
-	printk(BIOS_DEBUG, "Unknown function\n");
+	printk("Unknown function\n");
 }
 
 /**
@@ -147,9 +135,7 @@ void smi_handler(u32 smm_revision)
 
 	node = nodeid();
 
-	console_init();
-
-	printk(BIOS_SPEW, "\nSMI# #%d\n", node);
+	printk("\nSMI# #%d\n", node);
 
 	switch (smm_revision) {
 	case 0x00030002:
@@ -178,28 +164,21 @@ void smi_handler(u32 smm_revision)
 				       SMM_AMD64_ARCH_OFFSET, node);
 		break;
 	default:
-		printk(BIOS_DEBUG, "smm_revision: 0x%08x\n", smm_revision);
-		printk(BIOS_DEBUG, "SMI# not supported on your CPU\n");
+		printk("smm_revision: 0x%08x\n", smm_revision);
+		printk("SMI# not supported on your CPU\n");
 		/* Don't release lock, so no further SMI will happen,
 		 * if we don't handle it anyways.
 		 */
 		fucked = smm_revision;
 		return;
 	}
-
-	/* Allow drivers to initialize variables in SMM context. */
-	if (do_driver_init) {
-#if CONFIG_SPI_FLASH_SMM
-		spi_init();
-#endif
-		do_driver_init = 0;
-	}
-
+#if 0
 	/* Call chipset specific SMI handlers. */
 	cpu_smi_handler(node, &state_save);
 	northbridge_smi_handler(node, &state_save);
 	southbridge_smi_handler(node, &state_save);
-
+#endif
+	
 	smi_restore_pci_address();
 
 	smi_release_lock();
