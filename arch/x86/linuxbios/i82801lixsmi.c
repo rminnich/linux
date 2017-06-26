@@ -18,6 +18,9 @@
 #include <linux/console.h>
 #include <asm/setup.h>
 #include <asm/io.h>
+#include <linux/pci.h>
+#include <linux/init.h>
+#include <asm/pci_x86.h>
 #include "smm.h"
 #include "i82801ix.h"
 #include "i82801ixnvs.h"
@@ -334,7 +337,8 @@ static void southbridge_smi_tco(unsigned int node, smm_state_save_area_t *state_
 	if (tco_sts & (1 << 8)) { // BIOSWR
 		u8 bios_cntl;
 
-		bios_cntl = pci_read_config16(PCI_DEV(0, 0x1f, 0), 0xdc);
+		panic("we don't handle BIOSWR\n");
+		//bios_cntl = pci_read_config16(PCI_DEV(0, 0x1f, 0), 0xdc);
 
 		if (bios_cntl & 1) {
 			/* BWE is RW, so the SMI was caused by a
@@ -347,8 +351,8 @@ static void southbridge_smi_tco(unsigned int node, smm_state_save_area_t *state_
 			 * resolute answer would be to power down the
 			 * box.
 			 */
-			printk("Switching back to RO\n");
-			pci_write_config32(PCI_DEV(0, 0x1f, 0), 0xdc, (bios_cntl & ~1));
+			panic("Switching back to RO\n");
+			//pci_write_config32(PCI_DEV(0, 0x1f, 0), 0xdc, (bios_cntl & ~1));
 		} /* No else for now? */
 	} else if (tco_sts & (1 << 3)) { /* TIMEOUT */
 		/* Handle TCO timeout */
@@ -490,11 +494,13 @@ void southbridge_smi_handler(unsigned int node, smm_state_save_area_t *state_sav
 {
 	int i, dump = 0;
 	u32 smi_sts;
+	u32 pmb;
 
 	for(i = 0; i < 32; i++)
 	printk("YOU DID IT\n");
 	/* Update global variable pmbase */
-	pmbase = pci_read_config16(PCI_DEV(0, 0x1f, 0), D31F0_PMBASE) & 0xfffc;
+	pci_direct_conf1.read(0, 0, 0x1f, D31F0_PMBASE, 2, &pmb);
+	pmbase = (u16) pmb & 0xfffc;
 
 	/* We need to clear the SMI status registers, or we won't see what's
 	 * happening in the following calls.

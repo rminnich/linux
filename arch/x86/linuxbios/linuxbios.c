@@ -17,10 +17,15 @@
 #include <linux/console.h>
 #include <asm/setup.h>
 
+void smm_init(void);
+
 static int __init setup_linuxbios(char *p)
 {
 	void monitor(void);
 	printk("======================================== %s\n", p);
+	monitor();
+	printk("Setting up SMM\n");
+	smm_init();
 	monitor();
 	return 0;
 }
