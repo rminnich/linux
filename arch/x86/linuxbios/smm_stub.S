@@ -23,59 +23,17 @@
  * found in smm.h.
  */
 
-.code32
-.section ".smm", "aw"
-.globl _binary_smm_start
-_binary_smm_start:
-.=0xa0000
-stub_entry_params:
-stack_size:
-.long 0
-stack_top:
-.long 0
-c_handler:
-.long 0
-c_handler_arg:
-.long 0
-/* struct smm_runtime begins here. */
-smm_runtime:
-smbase:
-.long 0
-save_state_size:
-.long 0
-/* apic_to_cpu_num is a table mapping the default APIC id to CPU num. If the
- * APIC id is found at the given index, the contiguous CPU number is index
- * into the table. */
-apic_to_cpu_num:
-.fill CONFIG_NR_CPUS,1,0xff
-/* end struct smm_runtime */
-
-//.data
-/* Provide fallback stack to use when a valid CPU number cannot be found. */
-fallback_stack_bottom:
-.skip 128
-fallback_stack_top:
-
-//.text
+.align 65536
+.globl smmstart
+smmstart:
 .code16
-.global _start
-_start:
-	movl	$(smm_relocate_gdt), %ebx
-	data32	lgdt (%ebx)
-
-	movl	%cr0, %eax
-	andl	$0x1FFAFFD1, %eax /* CD,NW,PG,AM,WP,NE,TS,EM,MP = 0 */
-	orl	$0x1, %eax        /* PE = 1 */
-	movl	%eax, %cr0
-
-	/* Enable protected mode */
-	data32	ljmp $0x8, $smm_trampoline32
+	.section ".data", "aw"
+jmp 1f
 
 .align 4
-smm_relocate_gdt:
 	/* The first GDT entry is used for the lgdt instruction. */
-	.word	smm_relocate_gdt_end - smm_relocate_gdt - 1
-	.long	smm_relocate_gdt
+	.word	0x17
+	.long	0xa0004
 	.word	0x0000
 
 	/* gdt selector 0x08, flat code segment */
@@ -85,12 +43,35 @@ smm_relocate_gdt:
 	/* gdt selector 0x10, flat data segment */
 	.word	0xffff, 0x0000
 	.byte	0x00, 0x93, 0xcf, 0x00
-smm_relocate_gdt_end:
+.align 0x20
+// entry params
+4:
+.long 0
+// stack size
+5:
+.long 0
+// arg
+6:
+.long 0
+// handler
+7:
+.long 0
+/* struct smm_runtime begins here. */
+smm_runtime:
+smbase:
+.long 0
+save_state_size:
+.long 0
+.align 0x100
+/* apic_to_cpu_num is a table mapping the default APIC id to CPU num. If the
+ * APIC id is found at the given index, the contiguous CPU number is index
+ * into the table. */
+8:
+.fill CONFIG_NR_CPUS,1,0xff
+/* end struct smm_runtime */
 
-.align 4
+.align 0x400
 .code32
-.global smm_trampoline32
-smm_trampoline32:
 	/* Use flat data segment */
 	movw	$0x10, %ax
 	movw	%ax, %ds
@@ -100,13 +81,13 @@ smm_trampoline32:
 	movw	%ax, %gs
 
 	/* The CPU number is calculated by reading the initial APIC id. Since
-	 * the OS can maniuplate the APIC id use the non-changing cpuid result
+	 * the OS can manipulate the APIC id use the non-changing cpuid result
 	 * for APIC id (ebx[31:24]). A table is used to handle a discontiguous
 	 * APIC id space.  */
 	mov	$1, %eax
 	cpuid
 	bswap	%ebx	/* Default APIC id in bl. */
-	mov	$(apic_to_cpu_num), %eax
+	mov	$0xa0100, %eax
 	xor	%ecx, %ecx
 
 1:
@@ -118,29 +99,35 @@ smm_trampoline32:
 	/* This is bad. One cannot find a stack entry because a CPU num could
 	 * not be assigned. Use the fallback stack and check this condition in
 	 * C handler. */
-	movl	$(fallback_stack_top), %esp
-	jmp	2f
-1:
-	movl	stack_size, %eax
-	mul	%ecx
-	movl	stack_top, %edx
-	subl	%eax, %edx
-	mov	%edx, %esp
-
+	movl	$(0xaf000), %esp
 2:
 	/* Call into the c-based SMM relocation function with the platform
 	 * parameters. Equivalent to:
 	 *   struct arg = { c_handler_params, cpu_num, smm_runtime {;
 	 *   c_handler(&arg)
 	 */
-	push	$(smm_runtime)
+	push	$0xa0020
 	push	%ecx
-	push	c_handler_arg
+	push	0xa0024
 	push	%esp
-	mov	c_handler, %eax
+	mov	0xa0028, %eax
 	call	*%eax
 
 	/* Exit from SM mode. */
 	rsm
-.globl _binary_smm_end
-_binary_smm_end:
+.code16
+1:
+	movl	$0xa004, %ebx
+	data32	lgdt (%ebx)
+
+	movl	%cr0, %eax
+	andl	$0x1FFAFFD1, %eax /* CD,NW,PG,AM,WP,NE,TS,EM,MP = 0 */
+	orl	$0x1, %eax        /* PE = 1 */
+	movl	%eax, %cr0
+
+	/* Enable protected mode */
+	data32	ljmp $0x8, $0xa0200
+
+.code32
+smmend:
+.globl smmend

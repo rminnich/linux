@@ -339,8 +339,8 @@ static void smm_install(void)
 	if (1) { //!acpi_is_wakeup_s3()) {
 
 		/* copy the real SMM handler */
-		memcpy((void *)0xa0000, _binary_smm_start,
-			_binary_smm_end - _binary_smm_start);
+		//memcpy((void *)0xa0000, _binary_smm_start,
+		//_binary_smm_end - _binary_smm_start);
 		for(i = 0; i < 64; i += 4)
 			printk("%p %08x, ", (void *)(u64)0xa0000+i, *(u32 *)((u64)0xa0000 +i));
 		wbinvd();
