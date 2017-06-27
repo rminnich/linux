@@ -241,6 +241,7 @@ static void smm_relocate(void)
 	u32 smi_en;
 	u16 pm1_en;
 	u32 pmb;
+	void *v;
 
 	printk("i80801lix Initializing SMM handler...");
 
@@ -251,12 +252,14 @@ static void smm_relocate(void)
 
 	smi_en = inl(pmbase + SMI_EN);
 	if (smi_en & GBL_SMI_EN) {
-		printk("SMI# handler already enabled?\n");
-		return;
+		printk("SMI# handler already enabled.\n");
 	}
+	smi_en &= ~GBL_SMI_EN;
+	outl(smi_en, pmbase + SMI_EN);
 
 	/* copy the SMM relocation code */
-	memcpy((void *)0x38000, &smm_relocation_start,
+	v = phys_to_virt(0x38000);
+	memcpy(v, &smm_relocation_start,
 			&smm_relocation_end - &smm_relocation_start);
 	wbinvd();
 
@@ -337,18 +340,24 @@ static void smm_install(void)
 	 * so don't copy it again to keep the current SMM state */
 
 	if (1) { //!acpi_is_wakeup_s3()) {
-
+		extern uint8_t smmstart;
+		u32 *v = ioremap(0xa0000, 65536);
+		printk("v is %p and *v is %#x\n", v, *v);
+		printk("smmstart is %p\n", &smmstart);
 		/* copy the real SMM handler */
-		//memcpy((void *)0xa0000, _binary_smm_start,
-		//_binary_smm_end - _binary_smm_start);
-		for(i = 0; i < 64; i += 4)
-			printk("%p %08x, ", (void *)(u64)0xa0000+i, *(u32 *)((u64)0xa0000 +i));
+		memcpy(v, &smmstart, 4096);
+		for(i = 0; i < 64; i++)
+			printk("%p %08x, ", v, v[i]);
 		wbinvd();
 	}
 }
 
 void smm_init(void)
 {
+	// clear it out.
+	u32 smi_en;
+
+	smi_en = inl(pmbase + SMI_EN);
 	/* Put SMM code to 0xa0000 */
 	smm_install();
 

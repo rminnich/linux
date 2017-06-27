@@ -23,12 +23,12 @@
  * found in smm.h.
  */
 
+.text
 .align 65536
 .globl smmstart
 smmstart:
 .code16
-	.section ".data", "aw"
-jmp 1f
+jmp 9f
 
 .align 4
 	/* The first GDT entry is used for the lgdt instruction. */
@@ -89,17 +89,16 @@ save_state_size:
 	bswap	%ebx	/* Default APIC id in bl. */
 	mov	$0xa0100, %eax
 	xor	%ecx, %ecx
-
 1:
 	cmp	(%eax, %ecx, 1), %bl
-	je	1f
+	je	2f
 	inc	%ecx
 	cmp	$CONFIG_NR_CPUS, %ecx
 	jne	1b
 	/* This is bad. One cannot find a stack entry because a CPU num could
 	 * not be assigned. Use the fallback stack and check this condition in
 	 * C handler. */
-	movl	$(0xaf000), %esp
+	movl	$0xaf000, %esp
 2:
 	/* Call into the c-based SMM relocation function with the platform
 	 * parameters. Equivalent to:
@@ -111,13 +110,17 @@ save_state_size:
 	push	0xa0024
 	push	%esp
 	mov	0xa0028, %eax
-	call	*%eax
+	/* TODO: if we want to call into the kernel, we'll need to go to
+	 * Long Mode. */
+	/* TODO: we need SOMETHING to fill in 0xa0028 with a pointer to C
+	 * code! */
+	//call	*%eax
 
 	/* Exit from SM mode. */
 	rsm
 .code16
-1:
-	movl	$0xa004, %ebx
+9:
+	movl	$0xa0004, %ebx
 	data32	lgdt (%ebx)
 
 	movl	%cr0, %eax
@@ -126,7 +129,7 @@ save_state_size:
 	movl	%eax, %cr0
 
 	/* Enable protected mode */
-	data32	ljmp $0x8, $0xa0200
+	data32	ljmp $0x8, $0xa0400
 
 .code32
 smmend:
