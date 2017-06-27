@@ -15,12 +15,25 @@
  */
 
 /*
+ * This is some nasty code, sorry. It is hand-assembled to run at 0xa0000.
+ * Now you may have read about all kinds of restrictons around where SMM
+ * code can run, and state save area sizing and location, and so on and so forth.
+ * Since this SMM is intended to be
+ * an integrated part of Linux, not some sort of separate OS in ring -1, guess what:
+ * none of the old rules apply. We can be a LOT smarter about using what
+ * Linux has to offer. Simple example: we don't need to compute a stack
+ * in this code. As long as we save enough state to get back to the rsm,
+ * we can do all the nasty stuff later. That means that Linux can allocate
+ * the SMM stacks using standard mechanisms; further, it reduces attack
+ * surface greatly since the SMM code is no longer at a fixed place, is replaced
+ * on boot, and the state save area is also much harder for an attacker to find.
+ * Hence, this stub, originally from coreboot, is much reduced. Sorry
+ * for the by-hand static linking, we'll be cleaning that up but job 1
+ * was to get to something that worked.
+ *
  * The stub is a generic wrapper for bootstrapping a C-based SMM handler. Its
  * primary purpose is to put the CPU into protected mode with a stack and call
  * into the C handler.
- *
- * The stub_entry_params structure needs to correspond to the C structure
- * found in smm.h.
  */
 
 .text
