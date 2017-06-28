@@ -28,6 +28,7 @@ realmode-y			+= header.o
 realmode-y			+= trampoline_$(BITS).o
 realmode-y			+= stack.o
 realmode-y			+= reboot.o
+realmode-y			+= smmrelocate.o
 realmode-$(CONFIG_ACPI_SLEEP)	+= $(wakeup-objs)
 
 targets	+= $(realmode-y)
