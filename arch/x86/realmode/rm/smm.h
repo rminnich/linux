@@ -475,24 +475,17 @@ int mainboard_io_trap_handler(int smif);
 
 void southbridge_smi_set_eos(void);
 
-#if CONFIG_SMM_TSEG
-void cpu_smi_handler(void);
-void northbridge_smi_handler(void);
-void southbridge_smi_handler(void);
-#else
 void cpu_smi_handler(unsigned int node, smm_state_save_area_t *state_save);
 void northbridge_smi_handler(unsigned int node,
 	smm_state_save_area_t *state_save);
 void southbridge_smi_handler(unsigned int node,
 	smm_state_save_area_t *state_save);
-#endif /* CONFIG_SMM_TSEG */
+
 void mainboard_smi_gpi(u32 gpi_sts);
 int  mainboard_smi_apmc(u8 data);
 void mainboard_smi_sleep(u8 slp_typ);
 
-#if !CONFIG_SMM_TSEG
 void smi_release_lock(void);
-#endif
 
 /* This is the SMM handler. */
 extern unsigned char _binary_smm_start[];
@@ -520,7 +513,7 @@ struct smm_module_params {
 };
 
 /* smm_handler_t is called with arg of smm_module_params pointer. */
-typedef asmlinkage void (*smm_handler_t)(void *);
+//typedef asmlinkage void (*smm_handler_t)(void *);
 
 #ifdef __SMM__
 /* SMM Runtime helpers. */
@@ -561,12 +554,13 @@ struct smm_loader_params {
 	int per_cpu_save_state_size;
 	int num_concurrent_save_states;
 
-	smm_handler_t handler;
+	//smm_handler_t handler;
 	void *handler_arg;
 
-	struct smm_runtime *runtime;
+	//struct smm_runtime *runtime;
 };
 
+#if 0
 /* Both of these return 0 on success, < 0 on failure. */
 int smm_setup_relocation_handler(struct smm_loader_params *params);
 int smm_load_module(void *smram, int size, struct smm_loader_params *params);
@@ -575,4 +569,5 @@ int smm_load_module(void *smram, int size, struct smm_loader_params *params);
 void *backup_default_smm_area(void);
 void restore_default_smm_area(void *smm_save_area);
 
+#endif
 #endif /* CPU_X86_SMM_H */

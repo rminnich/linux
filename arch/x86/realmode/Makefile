@@ -13,6 +13,7 @@ subdir- := rm
 
 obj-y += init.o
 obj-y += rmpiggy.o
+obj-$(CONFIG_LINUXBIOS) += i82801ix.o
 
 $(obj)/rmpiggy.o: $(obj)/rm/realmode.bin
 
