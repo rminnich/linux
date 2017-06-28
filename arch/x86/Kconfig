@@ -2797,7 +2797,7 @@ config X86_DMA_REMAP
 	bool
 	depends on STA2X11
 
-config LinuxBIOS
+config LINUXBIOS
 	bool "LinuxBIOS support for machines with no firmware"
 	depends on X86_64
 	---help---
@@ -2821,5 +2821,3 @@ source "crypto/Kconfig"
 source "arch/x86/kvm/Kconfig"
 
 source "lib/Kconfig"
-
-source "arch/x86/linuxbios/Kconfig"
