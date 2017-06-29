@@ -43,11 +43,11 @@ quiet_cmd_pasyms = PASYMS  $@
       cmd_pasyms = $(NM) $(filter-out FORCE,$^) | \
 		   sed $(sed-pasyms) | sort | uniq > $@
 
-targets += pasyms.h smmpasyms.h
+targets += pasyms.h
 $(obj)/pasyms.h: $(REALMODE_OBJS) FORCE
 	$(call if_changed,pasyms)
 
-targets += realmode.lds smm.lds
+targets += realmode.lds
 
 $(obj)/realmode.lds: $(obj)/pasyms.h
 
@@ -74,10 +74,17 @@ $(obj)/realmode.relocs: $(obj)/realmode.elf FORCE
 # --- smm ---
 sed-smmpasyms := -n -r -e 's/^([0-9a-fA-F]+) [ABCDGRSTVW] (.+)$$/pa_\2 = \2;/p'
 
-quiet_cmd_smmpasyms = PASYMS  $@
+quiet_cmd_smmpasyms = SMMPASYMS  $@
       cmd_smmpasyms = $(NM) $(filter-out FORCE,$^) | \
 		   sed $(sed-smmpasyms) | sort | uniq > $@
 
+targets += smm.lds
+
+targets += smmpasyms.h
+$(obj)/smmpasyms.h: $(REALMODE_OBJS) FORCE
+	$(call if_changed,smmpasyms)
+
+targets += realmode.lds smm.lds
 $(obj)/smm.lds: $(obj)/smmpasyms.h
 
 LDFLAGS_smm.elf := --emit-relocs -T
