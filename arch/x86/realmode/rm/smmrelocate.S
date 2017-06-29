@@ -39,6 +39,8 @@
 
 .global smm_relocation_start
 .global smm_relocation_end
+.global end_signature
+.global heap_end
 
 /* initially SMM is some sort of real mode. */
 .code16
@@ -177,4 +179,8 @@ smm_relocate:
 
 	/* That's it. return */
 	rsm
+end_signature:
+	.long 4
+heap_end:
+	.long 4
 smm_relocation_end:

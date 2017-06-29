@@ -16,8 +16,6 @@ obj-y += rmpiggy.o
 obj-$(CONFIG_LINUXBIOS) += smmpiggy.o
 obj-$(CONFIG_LINUXBIOS) += i82801ix.o
 
-# since rmpiggy is always built we can make smmpiggy
-# depend on it.
 $(obj)/smmpiggy.o: $(obj)/rm/smm.bin
 
 $(obj)/rm/smm.bin: FORCE

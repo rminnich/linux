@@ -56,6 +56,9 @@ SECTIONS
 		*(.smm.signature)
 	}
 
+	. = ALIGN(4);
+	HEAP = .;
+
 	/DISCARD/ : {
 		*(.smm.note*)
 		*(.smm.debug*)

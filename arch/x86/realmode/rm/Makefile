@@ -81,10 +81,11 @@ quiet_cmd_smmpasyms = SMMPASYMS  $@
 targets += smm.lds
 
 targets += smmpasyms.h
-$(obj)/smmpasyms.h: $(REALMODE_OBJS) FORCE
+$(obj)/smmpasyms.h: $(SMM_OBJS) FORCE
+	echo smmobjs is $(SMM_OBJS)
 	$(call if_changed,smmpasyms)
 
-targets += realmode.lds smm.lds
+targets += smm.lds
 $(obj)/smm.lds: $(obj)/smmpasyms.h
 
 LDFLAGS_smm.elf := --emit-relocs -T
