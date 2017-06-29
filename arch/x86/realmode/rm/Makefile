@@ -28,13 +28,14 @@ realmode-y			+= header.o
 realmode-y			+= trampoline_$(BITS).o
 realmode-y			+= stack.o
 realmode-y			+= reboot.o
-realmode-$(CONFIG_LINUXBIOS)	+= smmrelocate.o
+smm-$(CONFIG_LINUXBIOS)	+= smmrelocate.o
 realmode-$(CONFIG_LINUXBIOS)	+= smmhandler.o
 realmode-$(CONFIG_ACPI_SLEEP)	+= $(wakeup-objs)
 
-targets	+= $(realmode-y)
+targets	+= $(realmode-y) $(smm-y)
 
 REALMODE_OBJS = $(addprefix $(obj)/,$(realmode-y))
+SMM_OBJS = $(addprefix $(obj)/,$(smm-y))
 
 sed-pasyms := -n -r -e 's/^([0-9a-fA-F]+) [ABCDGRSTVW] (.+)$$/pa_\2 = \2;/p'
 
@@ -42,11 +43,12 @@ quiet_cmd_pasyms = PASYMS  $@
       cmd_pasyms = $(NM) $(filter-out FORCE,$^) | \
 		   sed $(sed-pasyms) | sort | uniq > $@
 
-targets += pasyms.h
+targets += pasyms.h smmpasyms.h
 $(obj)/pasyms.h: $(REALMODE_OBJS) FORCE
 	$(call if_changed,pasyms)
 
-targets += realmode.lds
+targets += realmode.lds smm.lds
+
 $(obj)/realmode.lds: $(obj)/pasyms.h
 
 LDFLAGS_realmode.elf := --emit-relocs -T
@@ -67,6 +69,35 @@ quiet_cmd_relocs = RELOCS  $@
 
 targets += realmode.relocs
 $(obj)/realmode.relocs: $(obj)/realmode.elf FORCE
+	$(call if_changed,relocs)
+
+# --- smm ---
+sed-smmpasyms := -n -r -e 's/^([0-9a-fA-F]+) [ABCDGRSTVW] (.+)$$/pa_\2 = \2;/p'
+
+quiet_cmd_smmpasyms = PASYMS  $@
+      cmd_smmpasyms = $(NM) $(filter-out FORCE,$^) | \
+		   sed $(sed-smmpasyms) | sort | uniq > $@
+
+$(obj)/smm.lds: $(obj)/smmpasyms.h
+
+LDFLAGS_smm.elf := --emit-relocs -T
+CPPFLAGS_smm.lds += -P -C -I$(objtree)/$(obj)
+
+targets += smm.elf
+$(obj)/smm.elf: $(obj)/smm.lds $(SMM_OBJS) FORCE
+	$(call if_changed,ld)
+
+OBJCOPYFLAGS_smm.bin := -O binary
+
+targets += smm.bin
+$(obj)/smm.bin: $(obj)/smm.elf $(obj)/smm.relocs FORCE
+	$(call if_changed,objcopy)
+
+quiet_cmd_relocs = RELOCS  $@
+      cmd_relocs = arch/x86/tools/relocs --realmode $< > $@
+
+targets += smm.relocs
+$(obj)/smm.relocs: $(obj)/smm.elf FORCE
 	$(call if_changed,relocs)
 
 # ---------------------------------------------------------------------------
