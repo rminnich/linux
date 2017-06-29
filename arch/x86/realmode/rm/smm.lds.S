@@ -21,56 +21,46 @@ SECTIONS
 		*(.header)
 	}
 
-	. = ALIGN(4);
-	.rodata : {
-		*(.rodata)
-		*(.rodata.*)
-		. = ALIGN(16);
-		video_cards = .;
-		*(.videocards)
-		video_cards_end = .;
-	}
-
 	. = ALIGN(PAGE_SIZE);
-	pa_text_start = .;
+	smmpa_text_start = .;
 	.text : {
-		*(.text)
-		*(.text.*)
+		*(.smm.smm.text)
+		*(.smm.text.*)
 	}
 
 	.text32 : {
-		*(.text32)
-		*(.text32.*)
+		*(.smm.text32)
+		*(.smm.text32.*)
 	}
 
 	.text64 : {
-		*(.text64)
-		*(.text64.*)
+		*(.smm.text64)
+		*(.smm.text64.*)
 	}
-	pa_ro_end = .;
+	smmpa_ro_end = .;
 
 	. = ALIGN(PAGE_SIZE);
 	.data : {
-		*(.data)
-		*(.data.*)
+		*(.smm.data)
+		*(.smm.data.*)
 	}
 
 	. = ALIGN(128);
 	.bss : {
-		*(.bss*)
+		*(.smm.bss*)
 	}
 
 	/* End signature for integrity checking */
 	. = ALIGN(4);
 	.signature : {
-		*(.signature)
+		*(.smm.signature)
 	}
 
 	/DISCARD/ : {
-		*(.note*)
-		*(.debug*)
-		*(.eh_frame*)
+		*(.smm.note*)
+		*(.smm.debug*)
+		*(.smm.eh_frame*)
 	}
 
-#include "pasyms.h"
+#include "smmpasyms.h"
 }
