@@ -25,7 +25,16 @@ void __init set_real_mode_mem(phys_addr_t mem, size_t size)
 void __init reserve_real_mode(void)
 {
 	phys_addr_t mem;
+	phys_addr_t smmreloc;
 	size_t size = real_mode_size_needed();
+
+
+	smmreloc = memblock_find_in_range(0x38000, 0x38000+4096, 4096, PAGE_SIZE);
+	if (!smmreloc) {
+		panic("no memory for SMM relocation trampoline");
+	}
+
+	memblock_reserve(smmreloc, PAGE_SIZE);
 
 	if (!size)
 		return;
