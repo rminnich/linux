@@ -258,10 +258,13 @@ static void smm_relocate(void)
 
 	/* copy the SMM relocation code */
 	v = phys_to_virt(0x38000);
-#if 0
-	memcpy(v, &smm_relocation_start,
-			&smm_relocation_end - &smm_relocation_start);
-#endif
+	//struct real_mode_header *real_mode_header;
+	printk("memcopy(%p, %p, %#x)\n", v,
+	       __va(real_mode_header->smmreloc_start),
+	       real_mode_header->smmreloc_end - real_mode_header->smmreloc_start);
+
+	memcpy(v, __va(real_mode_header->smmreloc_start),
+	       16 + (real_mode_header->smmreloc_end - real_mode_header->smmreloc_start));
 	wbinvd();
 
 	printk("\n");
@@ -316,14 +319,16 @@ static void smm_relocate(void)
 
 	/* raise an SMI interrupt */
 	printk("  ... raise SMI#\n");
+	local_irq_disable();
 	outb(0x00, 0xb2);
+	panic("we're back");
 }
 
 static int smm_handler_copied = 0;
 
 static void smm_install(void)
 {
-	int i;
+	//int i;
 	uint8_t b;
 	
 	/* The first CPU running this gets to copy the SMM handler. But not all
@@ -341,17 +346,16 @@ static void smm_install(void)
 	 * so don't copy it again to keep the current SMM state */
 
 	if (1) { //!acpi_is_wakeup_s3()) {
-#if 0
-		extern uint8_t smmstart;
+		void *smmstart = __va(real_mode_header->smm_start);
 		u32 *v = ioremap(0xa0000, 65536);
+		int i;
 		printk("v is %p and *v is %#x\n", v, *v);
-		printk("smmstart is %p\n", &smmstart);
+		printk("smmstart is %p\n", smmstart);
 		/* copy the real SMM handler */
-		memcpy(v, &smmstart, 4096);
+		memcpy(v, smmstart, 4096);
+		wbinvd();
 		for(i = 0; i < 64; i++)
 			printk("%p %08x, ", v, v[i]);
-#endif
-		wbinvd();
 	}
 }
 
@@ -360,6 +364,7 @@ void smm_init(void)
 	// clear it out.
 	u32 smi_en;
 
+	printk("smmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm init\n");
 	smi_en = inl(pmbase + SMI_EN);
 	/* Put SMM code to 0xa0000 */
 	smm_install();
@@ -369,6 +374,7 @@ void smm_init(void)
 
 	/* We're done. Make sure SMIs can happen! */
 	smi_set_eos();
+	printk("smmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm init DONE\n");
 }
 
 void smm_setup_structures(void *gnvs, void *tcg, void *smi1)

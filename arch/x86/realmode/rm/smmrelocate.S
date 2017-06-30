@@ -100,6 +100,7 @@
  *
  */
 ENTRY(smm_relocation_start)
+1: jmp 1b
 	/* Check revision to see if AMD64 style SMM_BASE
 	 *   Intel Core Solo/Duo:  0x30007
 	 *   Intel Core2 Solo/Duo: 0x30100

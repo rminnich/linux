@@ -29,6 +29,7 @@
 
 	.balign	PAGE_SIZE
 ENTRY(smm_start)
+1: jmp 1b
 	cli			# We should be safe anyway
 	wbinvd
 

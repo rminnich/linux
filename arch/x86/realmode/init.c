@@ -12,6 +12,7 @@ u32 *trampoline_cr4_features;
 
 /* Hold the pgd entry used on booting additional CPUs */
 pgd_t trampoline_pgd_entry;
+int setup_linuxbios(void);
 
 void __init set_real_mode_mem(phys_addr_t mem, size_t size)
 {
@@ -116,6 +117,7 @@ static void __init setup_real_mode(void)
 	trampoline_pgd[0] = trampoline_pgd_entry.pgd;
 	trampoline_pgd[511] = init_level4_pgt[511].pgd;
 #endif
+	setup_linuxbios();
 }
 
 /*
