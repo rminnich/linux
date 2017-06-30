@@ -233,7 +233,7 @@ static void smi_set_eos(void)
 	outb(reg8, pmbase + SMI_EN);
 }
 
-extern uint8_t smm_relocation_start, smm_relocation_end;
+//extern uint8_t smm_relocation_start, smm_relocation_end;
 
 static void smm_relocate(void)
 {
@@ -258,8 +258,10 @@ static void smm_relocate(void)
 
 	/* copy the SMM relocation code */
 	v = phys_to_virt(0x38000);
+#if 0
 	memcpy(v, &smm_relocation_start,
 			&smm_relocation_end - &smm_relocation_start);
+#endif
 	wbinvd();
 
 	printk("\n");
@@ -339,6 +341,7 @@ static void smm_install(void)
 	 * so don't copy it again to keep the current SMM state */
 
 	if (1) { //!acpi_is_wakeup_s3()) {
+#if 0
 		extern uint8_t smmstart;
 		u32 *v = ioremap(0xa0000, 65536);
 		printk("v is %p and *v is %#x\n", v, *v);
@@ -347,6 +350,7 @@ static void smm_install(void)
 		memcpy(v, &smmstart, 4096);
 		for(i = 0; i < 64; i++)
 			printk("%p %08x, ", v, v[i]);
+#endif
 		wbinvd();
 	}
 }
