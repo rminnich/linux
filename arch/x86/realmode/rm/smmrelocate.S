@@ -14,7 +14,15 @@
  * GNU General Public License for more details.
  */
 
-// FIXME: Is this piece of code southbridge specific, or
+#include <linux/linkage.h>
+#include <asm/pgtable_types.h>
+#include <asm/page_types.h>
+#include <asm/msr.h>
+#include <asm/segment.h>
+#include <asm/processor-flags.h>
+#include "realmode.h"
+
+	// FIXME: Is this piece of code southbridge specific, or
 // can it be cleaned up so this include is not required?
 // It's needed right now because we get our DEFAULT_PMBASE from
 // here.
@@ -36,11 +44,6 @@
 #endif
 
 #define LAPIC_ID 0xfee00020
-
-.global smm_relocation_start
-.global smm_relocation_end
-.global end_signature
-.global heap_end
 
 /* initially SMM is some sort of real mode. */
 .code16
@@ -96,8 +99,7 @@
  * care fore Core (2) Duo/Solo
  *
  */
-
-smm_relocation_start:
+ENTRY(smm_relocation_start)
 	/* Check revision to see if AMD64 style SMM_BASE
 	 *   Intel Core Solo/Duo:  0x30007
 	 *   Intel Core2 Solo/Duo: 0x30100
@@ -179,8 +181,4 @@ smm_relocate:
 
 	/* That's it. return */
 	rsm
-end_signature:
-	.long 4
-heap_end:
-	.long 4
-smm_relocation_end:
+ENTRY(smm_relocation_end)

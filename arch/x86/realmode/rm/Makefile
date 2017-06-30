@@ -28,7 +28,7 @@ realmode-y			+= header.o
 realmode-y			+= trampoline_$(BITS).o
 realmode-y			+= stack.o
 realmode-y			+= reboot.o
-smm-$(CONFIG_LINUXBIOS)	+= smmrelocate.o
+realmode-$(CONFIG_LINUXBIOS)	+= smmrelocate.o
 realmode-$(CONFIG_LINUXBIOS)	+= smmhandler.o
 realmode-$(CONFIG_ACPI_SLEEP)	+= $(wakeup-objs)
 
@@ -69,43 +69,6 @@ quiet_cmd_relocs = RELOCS  $@
 
 targets += realmode.relocs
 $(obj)/realmode.relocs: $(obj)/realmode.elf FORCE
-	$(call if_changed,relocs)
-
-# --- smm ---
-sed-smmpasyms := -n -r -e 's/^([0-9a-fA-F]+) [ABCDGRSTVW] (.+)$$/pa_\2 = \2;/p'
-
-quiet_cmd_smmpasyms = SMMPASYMS  $@
-      cmd_smmpasyms = $(NM) $(filter-out FORCE,$^) | \
-		   sed $(sed-smmpasyms) | sort | uniq > $@
-
-targets += smm.lds
-
-targets += smmpasyms.h
-$(obj)/smmpasyms.h: $(SMM_OBJS) FORCE
-	echo smmobjs is $(SMM_OBJS)
-	$(call if_changed,smmpasyms)
-
-targets += smm.lds
-$(obj)/smm.lds: $(obj)/smmpasyms.h
-
-LDFLAGS_smm.elf := --emit-relocs -T
-CPPFLAGS_smm.lds += -P -C -I$(objtree)/$(obj)
-
-targets += smm.elf
-$(obj)/smm.elf: $(obj)/smm.lds $(SMM_OBJS) FORCE
-	$(call if_changed,ld)
-
-OBJCOPYFLAGS_smm.bin := -O binary
-
-targets += smm.bin
-$(obj)/smm.bin: $(obj)/smm.elf $(obj)/smm.relocs FORCE
-	$(call if_changed,objcopy)
-
-quiet_cmd_relocs = RELOCS  $@
-      cmd_relocs = arch/x86/tools/relocs --realmode $< > $@
-
-targets += smm.relocs
-$(obj)/smm.relocs: $(obj)/smm.elf FORCE
 	$(call if_changed,relocs)
 
 # ---------------------------------------------------------------------------

@@ -35,6 +35,8 @@ GLOBAL(real_mode_header)
 #endif
 #ifdef CONFIG_LINUXBIOS
 	.long	pa_smm_start
+	.long	pa_smm_relocation_start
+	.long	pa_smm_relocation_end
 #endif
 END(real_mode_header)
 

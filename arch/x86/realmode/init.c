@@ -84,6 +84,9 @@ static void __init setup_real_mode(void)
 	trampoline_header = (struct trampoline_header *)
 		__va(real_mode_header->trampoline_header);
 
+	early_printk("setup real mode smm is %p * is %#x\n", __va(real_mode_header->smm_start), *(u32 *)__va(real_mode_header->smm_start));
+	early_printk("setup reloc start %p end %p\n", __va(real_mode_header->smmreloc_start),
+		     __va(real_mode_header->smmreloc_end));
 #ifdef CONFIG_X86_32
 	trampoline_header->start = __pa_symbol(startup_32_smp);
 	trampoline_header->gdt_limit = __BOOT_DS + 7;

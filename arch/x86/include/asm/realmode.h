@@ -27,6 +27,8 @@ struct real_mode_header {
 #endif
 #ifdef CONFIG_LINUXBIOS
 	u32	smm_start;
+	u32	smmreloc_start;
+	u32	smmreloc_end;
 #endif
 };
 
