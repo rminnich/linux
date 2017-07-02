@@ -29,7 +29,6 @@
 
 	.balign	PAGE_SIZE
 ENTRY(smm_start)
-1: jmp 1b
 	cli			# We should be safe anyway
 	wbinvd
 
@@ -41,15 +40,16 @@ ENTRY(smm_start)
 	mov	%ax, %ss
 
 	movl	$0xA5A5A5A5, smm_status
+1: jmp 1b
 	# write marker for master knows we're running
 
+	# N.B. compiling this code in depends on long mode.
+	# Hence we do not verify that we're on x86_64 here.
+	# That would add a cpuid to the smm path and we don't
+	# want to do that.
 	# Setup stack
 	# TODO- per core stacks here.
 	movl	$rm_stack_end, %esp
-
-	call	verify_cpu		# Verify the cpu supports long mode
-	testl   %eax, %eax		# Check for return code
-	jnz	no_longmode
 
 	/*
 	 * GDT tables in non default location kernel can be beyond 16MB and
@@ -60,6 +60,7 @@ ENTRY(smm_start)
 
 	lidtl	smm_idt	# load idt with 0, 0
 	lgdtl	smm_gdt	# load gdt with whatever is appropriate
+1: jmp 1b
 
 	movw	$__KERNEL_DS, %dx	# Data segment descriptor
 
