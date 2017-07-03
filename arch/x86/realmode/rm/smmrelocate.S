@@ -93,32 +93,12 @@
  *
  * This means we're basically limited to 16 CPU cores before
  * we need to move the SMM handler to TSEG.
- *
- * Note: Some versions of Pentium M need their SMBASE aligned to 32k.
- * On those the above only works for up to 2 cores. But for now we only
- * care fore Core (2) Duo/Solo
+ * In this case, we assume the version is 64, which puts the
+ * offset at 0x7ef8.
  *
  */
 ENTRY(smm_relocation_start)
-	/* Check revision to see if AMD64 style SMM_BASE
-	 *   Intel Core Solo/Duo:  0x30007
-	 *   Intel Core2 Solo/Duo: 0x30100
-	 *   Intel SandyBridge:    0x30101
-	 *   AMD64:                0x3XX64
-	 * This check does not make much sense, unless someone ports
-	 * SMI handling to AMD64 CPUs.
-	 */
-
-	mov $0x38000 + 0x7efc, %ebx
-	addr32 mov (%ebx), %al
-	cmp $0x64, %al
-	je 1f
-
 	mov $0x38000 + 0x7ef8, %ebx
-	jmp smm_relocate
-1:
-	mov $0x38000 + 0x7f00, %ebx
-
 smm_relocate:
 	/* Get this CPU's LAPIC ID */
 	movl $LAPIC_ID, %esi
@@ -134,7 +114,7 @@ smm_relocate:
 	movl $pa_smm_start, %eax
 	subl %edx, %eax	/* subtract offset, see above */
 
-	addr32 movl %eax, (%ebx)
+//	addr32 movl %eax, (%ebx)
 
 	/* The next section of code is potentially southbridge specific */
 	/* Clear SMI status */

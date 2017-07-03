@@ -45,6 +45,7 @@ static u16 pmbase = DEFAULT_PMBASE;
 // or not -- assuming, of course, we know SMBASE. For now we assume
 // 0xa0000, but that's got to be fixed soon.
 static u8 longjmp0x30000x8000[] = { 0xEA, 0x00, 0x80, 0x00, 0x30 };
+static u8 longjmpsmmhandler[] = { 0xEA, 0x00, 0x00, 0x00, 0x00 };
 
 
 /**
@@ -248,8 +249,13 @@ static void smm_relocate(void)
 	u16 pm1_en;
 	u32 pmb;
 	void *v;
+	uint32_t pa = real_mode_header->smm_start;
+	uint16_t seg, off;
 
 	printk("i80801lix Initializing SMM handler...");
+
+	if (! pa) 
+		panic("pa is 0!");
 
 	pci_direct_conf1.read(0, 0, 0x1f, D31F0_PMBASE, 2, &pmb);
 	pmbase = (u16) pmb & 0xfffc;
@@ -265,7 +271,6 @@ static void smm_relocate(void)
 
 	/* copy the SMM relocation code */
 	v = phys_to_virt(0x38000);
-	//struct real_mode_header *real_mode_header;
 	printk("memcopy(%p, %p, %#x)\n", v,
 	       __va(real_mode_header->smmreloc_start),
 	       real_mode_header->smmreloc_end - real_mode_header->smmreloc_start);
@@ -327,6 +332,28 @@ static void smm_relocate(void)
 	/* raise an SMI interrupt */
 	printk("  ... raise SMI#\n");
 	outb(0x00, 0xb2);
+	printk("smm relocated. Now change code to point to 0x%x.\n", pa);
+	seg = (uint16_t)(pa>>4) & 0xf000;
+	off = (uint16_t)pa;
+	printk("smm seg is 0x%x, off is 0x%x\n", seg, off);
+	longjmpsmmhandler[3] = (uint8_t)seg;
+	longjmpsmmhandler[4] = (uint8_t)(seg>>8);
+	longjmpsmmhandler[1] = (uint8_t)off;
+	longjmpsmmhandler[2] = (uint8_t)(off>>8);
+	if (seg == 0)
+		panic("seg is 0");
+	printk("lj %02x %02x %02x %02x %02x\n", 
+		longjmpsmmhandler[0],
+		longjmpsmmhandler[1],
+		longjmpsmmhandler[2],
+		longjmpsmmhandler[3],
+		longjmpsmmhandler[4]);
+//	longjmpsmmhandler[1] = 0xfe;
+//	longjmpsmmhandler[0] = 0xeb;
+	memcpy(__va(0xa0000), longjmpsmmhandler, sizeof(longjmpsmmhandler));
+	printk("  ... raise SMI#\n");
+	outb(0x00, 0xb2);
+	
 }
 
 static int smm_handler_copied = 0;
