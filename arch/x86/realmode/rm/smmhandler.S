@@ -29,6 +29,7 @@
 
 	.balign	PAGE_SIZE
 ENTRY(smm_start)
+1: jmp 1b
 	cli			# We should be safe anyway
 	wbinvd
 
@@ -40,7 +41,6 @@ ENTRY(smm_start)
 	mov	%ax, %ss
 
 	movl	$0xA5A5A5A5, smm_status
-1: jmp 1b
 	# write marker for master knows we're running
 
 	# N.B. compiling this code in depends on long mode.
@@ -57,10 +57,9 @@ ENTRY(smm_start)
 	 * operand size is 16bit. Use lgdtl instead to force operand size
 	 * to 32 bit.
 	 */
-
-	lidtl	smm_idt	# load idt with 0, 0
+.global tr_idt
+	lidtl	tr_idt	# load idt with 0, 0
 	lgdtl	smm_gdt	# load gdt with whatever is appropriate
-1: jmp 1b
 
 	movw	$__KERNEL_DS, %dx	# Data segment descriptor
 
@@ -80,6 +79,7 @@ no_longmode:
 	.code32
 	.balign 4
 ENTRY(smm_startup_32)
+#
 	movl	%edx, %ss
 	addl	$pa_real_mode_base, %esp
 	movl	%edx, %ds
@@ -87,21 +87,24 @@ ENTRY(smm_startup_32)
 	movl	%edx, %fs
 	movl	%edx, %gs
 
-	movl	pa_smm_cr4, %eax
+	movl	pa_tr_cr4, %eax
 	movl	%eax, %cr4		# Enable PAE mode
 
 	# Setup smm 4 level pagetables
-	movl	$pa_smm_pgd, %eax
+	movl	$pa_trampoline_pgd, %eax
 	movl	%eax, %cr3
 
+#1: jmp 1b
 	# Set up EFER
-	movl	pa_smm_efer, %eax
-	movl	pa_smm_efer + 4, %edx
+	movl	pa_tr_efer, %eax
+	movl	pa_tr_efer + 4, %edx
 	movl	$MSR_EFER, %ecx
 	wrmsr
 
+1: jmp 1b
 	# Enable paging and in turn activate Long Mode
 	movl	$(X86_CR0_PG | X86_CR0_WP | X86_CR0_PE), %eax
+1: jmp 1b
 	movl	%eax, %cr0
 
 	/*
@@ -110,7 +113,8 @@ ENTRY(smm_startup_32)
 	 * EFER.LMA = 1). Now we want to jump in 64bit mode, to do that we use
 	 * the new gdt/idt that has __KERNEL_CS with CS.L = 1.
 	 */
-	ljmpl	$__KERNEL_CS, $pa_startup_64
+	ljmpl	$__KERNEL_CS, $0x9a270
+	//ljmpl	$__KERNEL_CS, $smm_startup_64
 
 	.section ".text64","ax"
 	.code64
@@ -118,6 +122,7 @@ ENTRY(smm_startup_32)
 ENTRY(smm_startup_64)
 	# Now jump into the kernel using virtual addresses
 	#callq	*smm_c(%rip)
+1: jmp 1b
 	rsm
 
 	.section ".rodata","a"
@@ -135,20 +140,4 @@ smm_gdt:
 smm_gdt_end:
 
 	.bss
-	.balign	PAGE_SIZE
-GLOBAL(smm_pgd)		.space	PAGE_SIZE
-
-	.balign	8
-GLOBAL(smm_header)
-	smm_c:		.space	8
-	GLOBAL(smm_efer)		.space	8
-	GLOBAL(smm_cr4)		.space	4
-END(smm_header)
-
-	.section ".rodata","a"
-	.balign	16
-smm_idt: .fill 1, 6, 0
-
-	.bss
-	.balign	4
 GLOBAL(smm_status)	.space	4

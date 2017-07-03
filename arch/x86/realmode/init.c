@@ -30,12 +30,12 @@ void __init reserve_real_mode(void)
 	size_t size = real_mode_size_needed();
 
 
-	smmreloc = memblock_find_in_range(0x38000, 0x38000+4096, 4096, PAGE_SIZE);
+	smmreloc = memblock_find_in_range(0x30000, 0x30000+65536, 65536, 65536);
 	if (!smmreloc) {
 		panic("no memory for SMM relocation trampoline");
 	}
 
-	memblock_reserve(smmreloc, PAGE_SIZE);
+	memblock_reserve(smmreloc, 65536);
 
 	if (!size)
 		return;
@@ -117,6 +117,7 @@ static void __init setup_real_mode(void)
 	trampoline_pgd[0] = trampoline_pgd_entry.pgd;
 	trampoline_pgd[511] = init_level4_pgt[511].pgd;
 #endif
+	printk("EFER is 0x%#x\n", efer);
 	setup_linuxbios();
 }
 
@@ -145,6 +146,7 @@ static void __init set_real_mode_permissions(void)
 		(unsigned long) __va(real_mode_header->text_start);
 
 	set_memory_nx((unsigned long) base, size >> PAGE_SHIFT);
+	printk("set mem ro base 0x%x ro_size 0x%x\n", base, ro_size);
 	set_memory_ro((unsigned long) base, ro_size >> PAGE_SHIFT);
 	set_memory_x((unsigned long) text_start, text_size >> PAGE_SHIFT);
 }

@@ -40,6 +40,13 @@
  */
 static u16 pmbase = DEFAULT_PMBASE;
 
+// This longjmp is used to get us back the relocation code.
+// Hence our relocation works whether SMI was set up in firmware
+// or not -- assuming, of course, we know SMBASE. For now we assume
+// 0xa0000, but that's got to be fixed soon.
+static u8 longjmp0x30000x8000[] = { 0xEA, 0x00, 0x80, 0x00, 0x30 };
+
+
 /**
  * @brief read and clear PM1_STS
  * @return PM1_STS register
@@ -319,9 +326,7 @@ static void smm_relocate(void)
 
 	/* raise an SMI interrupt */
 	printk("  ... raise SMI#\n");
-	local_irq_disable();
 	outb(0x00, 0xb2);
-	panic("we're back");
 }
 
 static int smm_handler_copied = 0;
@@ -332,7 +337,8 @@ static void smm_install(void)
 	uint8_t b;
 	
 	/* The first CPU running this gets to copy the SMM handler. But not all
-	 * of them.
+	 * of them. This code works only because when the BSP gets here, the APs are
+	 * not running.
 	 */
 	if (smm_handler_copied)
 		return;
@@ -346,15 +352,15 @@ static void smm_install(void)
 	 * so don't copy it again to keep the current SMM state */
 
 	if (1) { //!acpi_is_wakeup_s3()) {
-		void *smmstart = __va(real_mode_header->smm_start);
+		void *smmstart = longjmp0x30000x8000;
 		u32 *v = ioremap(0xa0000, 65536);
 		int i;
 		printk("v is %p and *v is %#x\n", v, *v);
 		printk("smmstart is %p\n", smmstart);
 		/* copy the real SMM handler */
-		memcpy(v, smmstart, 4096);
+		memcpy(v, longjmp0x30000x8000, sizeof(longjmp0x30000x8000));
 		wbinvd();
-		for(i = 0; i < 64; i++)
+		for(i = 0; i < sizeof(longjmp0x30000x8000); i++)
 			printk("%p %08x, ", v, v[i]);
 	}
 }

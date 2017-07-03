@@ -100,7 +100,6 @@
  *
  */
 ENTRY(smm_relocation_start)
-1: jmp 1b
 	/* Check revision to see if AMD64 style SMM_BASE
 	 *   Intel Core Solo/Duo:  0x30007
 	 *   Intel Core2 Solo/Duo: 0x30100
@@ -132,7 +131,7 @@ smm_relocate:
 	movl %ecx, %edx
 	shl $10, %edx
 
-	movl $0xa0000, %eax
+	movl $pa_smm_start, %eax
 	subl %edx, %eax	/* subtract offset, see above */
 
 	addr32 movl %eax, (%ebx)
@@ -158,13 +157,14 @@ smm_relocate:
 
 #if 1 || CONFIG_DEBUG_SMM_RELOCATION
 	/* print [SMM-x] so we can determine if CPUx went to SMM */
-	movw $0xef8, %dx
+	movw $0x3f8, %dx
 	mov $'[', %al
 	outb %al, %dx
 	mov $'S', %al
 	outb %al, %dx
 	mov $'M', %al
 	outb %al, %dx
+	mov $'R', %al
 	outb %al, %dx
 	movb $'-', %al
 	outb %al, %dx
