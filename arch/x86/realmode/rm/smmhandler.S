@@ -29,6 +29,7 @@
 
 	.balign	PAGE_SIZE
 ENTRY(smm_start)
+	LJMPW_RM(trampoline_start)
 	rsm
 	cli			# We should be safe anyway
 	wbinvd
