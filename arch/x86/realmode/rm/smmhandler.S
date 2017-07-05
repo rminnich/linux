@@ -118,7 +118,9 @@ ENTRY(smm_startup_32)
 	.balign 4
 ENTRY(smm_startup_64)
 	# Now jump into the kernel using virtual addresses
-	#callq	*smm_c(%rip)
+	callq	*smm_c(%rip)
+	#movq	smm_c(%rip), %rax
+#1: jmp 1b
 	rsm
 
 	.section ".rodata","a"
@@ -137,3 +139,4 @@ smm_gdt_end:
 
 	.bss
 GLOBAL(smm_status)	.space	4
+GLOBAL(smm_c)		.space 8

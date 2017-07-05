@@ -392,11 +392,18 @@ static void smm_install(void)
 	}
 }
 
+void smm_test(void)
+{
+	printk("well here I am\n");
+}
+
 void smm_init(void)
 {
+	uint64_t *c = __va(real_mode_header->smm_c);
 	// clear it out.
 	u32 smi_en;
 
+	*c = (uint64_t)smm_test;
 	printk("smmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm init\n");
 	smi_en = inl(pmbase + SMI_EN);
 	/* Put SMM code to 0xa0000 */

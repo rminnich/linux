@@ -29,6 +29,7 @@ struct real_mode_header {
 	u32	smm_start;
 	u32	smmreloc_start;
 	u32	smmreloc_end;
+	u32	smm_c;
 #endif
 };
 

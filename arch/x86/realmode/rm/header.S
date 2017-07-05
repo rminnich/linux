@@ -37,6 +37,7 @@ GLOBAL(real_mode_header)
 	.long	pa_smm_start
 	.long	pa_smm_relocation_start
 	.long	pa_smm_relocation_end
+	.long	pa_smm_c
 #endif
 END(real_mode_header)
 
