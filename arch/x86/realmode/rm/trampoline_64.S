@@ -99,7 +99,6 @@ ENTRY(startup_32)
 	movl	$pa_trampoline_pgd, %eax
 	movl	%eax, %cr3
 
-1: jmp 1b
 	# Set up EFER
 	movl	pa_tr_efer, %eax
 	movl	pa_tr_efer + 4, %edx
@@ -122,7 +121,7 @@ ENTRY(startup_32)
 	.code64
 	.balign 4
 ENTRY(startup_64)
-1: jmp 1b
+	rsm
 	# Now jump into the kernel using virtual addresses
 	jmpq	*tr_start(%rip)
 

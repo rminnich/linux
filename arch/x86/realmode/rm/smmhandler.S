@@ -29,8 +29,8 @@
 
 	.balign	PAGE_SIZE
 ENTRY(smm_start)
-	LJMPW_RM(trampoline_start)
-	rsm
+#	LJMPW_RM(trampoline_start)
+#	rsm
 	cli			# We should be safe anyway
 	wbinvd
 
@@ -101,7 +101,6 @@ ENTRY(smm_startup_32)
 	movl	$MSR_EFER, %ecx
 	wrmsr
 
-1: jmp 1b // HERE
 	# Enable paging and in turn activate Long Mode
 	movl	$(X86_CR0_PG | X86_CR0_WP | X86_CR0_PE), %eax
 	movl	%eax, %cr0
@@ -112,16 +111,14 @@ ENTRY(smm_startup_32)
 	 * EFER.LMA = 1). Now we want to jump in 64bit mode, to do that we use
 	 * the new gdt/idt that has __KERNEL_CS with CS.L = 1.
 	 */
-	ljmpl	$__KERNEL_CS, $smm_startup_64
+	ljmpl	$__KERNEL_CS, $pa_smm_startup_64
 
 	.section ".text64","ax"
 	.code64
 	.balign 4
 ENTRY(smm_startup_64)
-1: jmp 1b //FAIL
 	# Now jump into the kernel using virtual addresses
 	#callq	*smm_c(%rip)
-1: jmp 1b
 	rsm
 
 	.section ".rodata","a"
