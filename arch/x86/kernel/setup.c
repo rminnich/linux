@@ -503,7 +503,7 @@ static int __init reserve_crashkernel_low(void)
 			return 0;
 	}
 
-	low_base = memblock_find_in_range(low_size, 1ULL << 32, low_size, CRASH_ALIGN);
+	low_base = memblock_find_in_range(0, 1ULL << 32, low_size, CRASH_ALIGN);
 	if (!low_base) {
 		pr_err("Cannot reserve %ldMB crashkernel low memory, please try smaller size.\n",
 		       (unsigned long)(low_size >> 20));
@@ -980,8 +980,6 @@ void __init setup_arch(char **cmdline_p)
 	 */
 	x86_configure_nx();
 
-	simple_udelay_calibration();
-
 	parse_early_param();
 
 #ifdef CONFIG_MEMORY_HOTPLUG
@@ -1040,6 +1038,8 @@ void __init setup_arch(char **cmdline_p)
 	 * needs to be done after dmi_scan_machine, for the BP.
 	 */
 	init_hypervisor_platform();
+
+	simple_udelay_calibration();
 
 	x86_init.resources.probe_roms();
 
