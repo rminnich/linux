@@ -1,0 +1,13 @@
+#!/bin/bash
+
+set -e
+
+ARCH=x86_64 make -j 32 bzImage
+objdump -S -d vmlinux > vmlinux.asm &
+
+GenSec -o pe32.sec arch/x86/boot/bzImage -S EFI_SECTION_PE32
+GenSec -o name.sec -S EFI_SECTION_USER_INTERFACE -n "Ntfs"
+GenSec -o ver.sec -S EFI_SECTION_VERSION -n "1.0"
+GenFfs -g "6D33944A-EC75-4855-A54D-809C75241F6C" -o linux.ffs -i pe32.sec -i name.sec -i ver.sec -i bdsdxedep.sec -t EFI_FV_FILETYPE_DRIVER
+
+ls -lh linux.ffs
