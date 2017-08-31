@@ -964,6 +964,7 @@ static blk_status_t btree_csum_one_bio(struct bio *bio)
 	struct btrfs_root *root;
 	int i, ret = 0;
 
+	ASSERT(!bio_flagged(bio, BIO_CLONED));
 	bio_for_each_segment_all(bvec, bio, i) {
 		root = BTRFS_I(bvec->bv_page->mapping->host)->root;
 		ret = csum_dirty_buffer(root->fs_info, bvec->bv_page);
@@ -3515,7 +3516,7 @@ static blk_status_t wait_dev_flush(struct btrfs_device *device)
 	struct bio *bio = device->flush_bio;
 
 	if (!device->flush_bio_sent)
-		return 0;
+		return BLK_STS_OK;
 
 	device->flush_bio_sent = 0;
 	wait_for_completion_io(&device->flush_wait);
@@ -3562,7 +3563,7 @@ static int barrier_all_devices(struct btrfs_fs_info *info)
 			continue;
 
 		write_dev_flush(dev);
-		dev->last_flush_error = 0;
+		dev->last_flush_error = BLK_STS_OK;
 	}
 
 	/* wait for all the barriers */

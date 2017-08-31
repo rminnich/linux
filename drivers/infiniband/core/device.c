@@ -376,7 +376,8 @@ static void ib_policy_change_task(struct work_struct *work)
 			WARN_ONCE(ret,
 				  "ib_get_cached_subnet_prefix err: %d, this should never happen here\n",
 				  ret);
-			ib_security_cache_change(dev, i, sp);
+			if (!ret)
+				ib_security_cache_change(dev, i, sp);
 		}
 	}
 	up_read(&lists_rwsem);
@@ -536,10 +537,11 @@ void ib_unregister_device(struct ib_device *device)
 	}
 	up_read(&lists_rwsem);
 
-	mutex_unlock(&device_mutex);
-
 	ib_device_unregister_rdmacg(device);
 	ib_device_unregister_sysfs(device);
+
+	mutex_unlock(&device_mutex);
+
 	ib_cache_cleanup_one(device);
 
 	ib_security_destroy_port_pkey_list(device);

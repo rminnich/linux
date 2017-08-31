@@ -1085,6 +1085,12 @@ static int mlx5_ib_modify_port(struct ib_device *ibdev, u8 port, int mask,
 	bool is_ib = (mlx5_ib_port_link_layer(ibdev, port) ==
 		      IB_LINK_LAYER_INFINIBAND);
 
+	/* CM layer calls ib_modify_port() regardless of the link layer. For
+	 * Ethernet ports, qkey violation and Port capabilities are meaningless.
+	 */
+	if (!is_ib)
+		return 0;
+
 	if (MLX5_CAP_GEN(dev->mdev, ib_virt) && is_ib) {
 		change_mask = props->clr_port_cap_mask | props->set_port_cap_mask;
 		value = ~props->clr_port_cap_mask | props->set_port_cap_mask;
@@ -3528,6 +3534,11 @@ static int mlx5_ib_get_hw_stats(struct ib_device *ibdev,
 	return num_counters;
 }
 
+static void mlx5_ib_free_rdma_netdev(struct net_device *netdev)
+{
+	return mlx5_rdma_netdev_free(netdev);
+}
+
 static struct net_device*
 mlx5_ib_alloc_rdma_netdev(struct ib_device *hca,
 			  u8 port_num,
@@ -3536,16 +3547,19 @@ mlx5_ib_alloc_rdma_netdev(struct ib_device *hca,
 			  unsigned char name_assign_type,
 			  void (*setup)(struct net_device *))
 {
+	struct net_device *netdev;
+	struct rdma_netdev *rn;
+
 	if (type != RDMA_NETDEV_IPOIB)
 		return ERR_PTR(-EOPNOTSUPP);
 
-	return mlx5_rdma_netdev_alloc(to_mdev(hca)->mdev, hca,
-				      name, setup);
-}
-
-static void mlx5_ib_free_rdma_netdev(struct net_device *netdev)
-{
-	return mlx5_rdma_netdev_free(netdev);
+	netdev = mlx5_rdma_netdev_alloc(to_mdev(hca)->mdev, hca,
+					name, setup);
+	if (likely(!IS_ERR_OR_NULL(netdev))) {
+		rn = netdev_priv(netdev);
+		rn->free_rdma_netdev = mlx5_ib_free_rdma_netdev;
+	}
+	return netdev;
 }
 
 static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
@@ -3678,10 +3692,9 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
 	dev->ib_dev.check_mr_status	= mlx5_ib_check_mr_status;
 	dev->ib_dev.get_port_immutable  = mlx5_port_immutable;
 	dev->ib_dev.get_dev_fw_str      = get_dev_fw_str;
-	if (MLX5_CAP_GEN(mdev, ipoib_enhanced_offloads)) {
+	if (MLX5_CAP_GEN(mdev, ipoib_enhanced_offloads))
 		dev->ib_dev.alloc_rdma_netdev	= mlx5_ib_alloc_rdma_netdev;
-		dev->ib_dev.free_rdma_netdev	= mlx5_ib_free_rdma_netdev;
-	}
+
 	if (mlx5_core_is_pf(mdev)) {
 		dev->ib_dev.get_vf_config	= mlx5_ib_get_vf_config;
 		dev->ib_dev.set_vf_link_state	= mlx5_ib_set_vf_link_state;

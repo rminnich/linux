@@ -1569,7 +1569,8 @@ int bond_enslave(struct net_device *bond_dev, struct net_device *slave_dev)
 	new_slave->delay = 0;
 	new_slave->link_failure_count = 0;
 
-	if (bond_update_speed_duplex(new_slave))
+	if (bond_update_speed_duplex(new_slave) &&
+	    bond_needs_speed_duplex(bond))
 		new_slave->link = BOND_LINK_DOWN;
 
 	new_slave->last_rx = jiffies -
@@ -1820,7 +1821,7 @@ err_undo_flags:
  */
 static int __bond_release_one(struct net_device *bond_dev,
 			      struct net_device *slave_dev,
-			      bool all)
+			      bool all, bool unregister)
 {
 	struct bonding *bond = netdev_priv(bond_dev);
 	struct slave *slave, *oldcurrent;
@@ -1965,7 +1966,10 @@ static int __bond_release_one(struct net_device *bond_dev,
 		dev_set_mac_address(slave_dev, (struct sockaddr *)&ss);
 	}
 
-	dev_set_mtu(slave_dev, slave->original_mtu);
+	if (unregister)
+		__dev_set_mtu(slave_dev, slave->original_mtu);
+	else
+		dev_set_mtu(slave_dev, slave->original_mtu);
 
 	slave_dev->priv_flags &= ~IFF_BONDING;
 
@@ -1977,7 +1981,7 @@ static int __bond_release_one(struct net_device *bond_dev,
 /* A wrapper used because of ndo_del_link */
 int bond_release(struct net_device *bond_dev, struct net_device *slave_dev)
 {
-	return __bond_release_one(bond_dev, slave_dev, false);
+	return __bond_release_one(bond_dev, slave_dev, false, false);
 }
 
 /* First release a slave and then destroy the bond if no more slaves are left.
@@ -1989,7 +1993,7 @@ static int  bond_release_and_destroy(struct net_device *bond_dev,
 	struct bonding *bond = netdev_priv(bond_dev);
 	int ret;
 
-	ret = bond_release(bond_dev, slave_dev);
+	ret = __bond_release_one(bond_dev, slave_dev, false, true);
 	if (ret == 0 && !bond_has_slaves(bond)) {
 		bond_dev->priv_flags |= IFF_DISABLE_NETPOLL;
 		netdev_info(bond_dev, "Destroying bond %s\n",
@@ -2047,6 +2051,7 @@ static int bond_miimon_inspect(struct bonding *bond)
 				continue;
 
 			bond_propose_link_state(slave, BOND_LINK_FAIL);
+			commit++;
 			slave->delay = bond->params.downdelay;
 			if (slave->delay) {
 				netdev_info(bond->dev, "link status down for %sinterface %s, disabling it in %d ms\n",
@@ -2085,6 +2090,7 @@ static int bond_miimon_inspect(struct bonding *bond)
 				continue;
 
 			bond_propose_link_state(slave, BOND_LINK_BACK);
+			commit++;
 			slave->delay = bond->params.updelay;
 
 			if (slave->delay) {
@@ -2135,11 +2141,13 @@ static void bond_miimon_commit(struct bonding *bond)
 			continue;
 
 		case BOND_LINK_UP:
-			if (bond_update_speed_duplex(slave)) {
+			if (bond_update_speed_duplex(slave) &&
+			    bond_needs_speed_duplex(bond)) {
 				slave->link = BOND_LINK_DOWN;
-				netdev_warn(bond->dev,
-					    "failed to get link speed/duplex for %s\n",
-					    slave->dev->name);
+				if (net_ratelimit())
+					netdev_warn(bond->dev,
+						    "failed to get link speed/duplex for %s\n",
+						    slave->dev->name);
 				continue;
 			}
 			bond_set_slave_link_state(slave, BOND_LINK_UP,
@@ -3060,7 +3068,7 @@ static int bond_slave_netdev_event(unsigned long event,
 		if (bond_dev->type != ARPHRD_ETHER)
 			bond_release_and_destroy(bond_dev, slave_dev);
 		else
-			bond_release(bond_dev, slave_dev);
+			__bond_release_one(bond_dev, slave_dev, false, true);
 		break;
 	case NETDEV_UP:
 	case NETDEV_CHANGE:
@@ -4252,7 +4260,7 @@ static void bond_uninit(struct net_device *bond_dev)
 
 	/* Release the bonded slaves */
 	bond_for_each_slave(bond, slave, iter)
-		__bond_release_one(bond_dev, slave->dev, true);
+		__bond_release_one(bond_dev, slave->dev, true, true);
 	netdev_info(bond_dev, "Released all slaves\n");
 
 	arr = rtnl_dereference(bond->slave_arr);
@@ -4593,7 +4601,7 @@ static int bond_check_params(struct bond_params *params)
 	}
 	ad_user_port_key = valptr->value;
 
-	if (bond_mode == BOND_MODE_TLB) {
+	if ((bond_mode == BOND_MODE_TLB) || (bond_mode == BOND_MODE_ALB)) {
 		bond_opt_initstr(&newval, "default");
 		valptr = bond_opt_parse(bond_opt_get(BOND_OPT_TLB_DYNAMIC_LB),
 					&newval);

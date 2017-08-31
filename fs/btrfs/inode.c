@@ -7924,11 +7924,12 @@ err:
 	return ret;
 }
 
-static inline int submit_dio_repair_bio(struct inode *inode, struct bio *bio,
-					int mirror_num)
+static inline blk_status_t submit_dio_repair_bio(struct inode *inode,
+						 struct bio *bio,
+						 int mirror_num)
 {
 	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
-	int ret;
+	blk_status_t ret;
 
 	BUG_ON(bio_op(bio) == REQ_OP_WRITE);
 
@@ -7980,10 +7981,10 @@ static int btrfs_check_dio_repairable(struct inode *inode,
 	return 1;
 }
 
-static int dio_read_error(struct inode *inode, struct bio *failed_bio,
-			struct page *page, unsigned int pgoff,
-			u64 start, u64 end, int failed_mirror,
-			bio_end_io_t *repair_endio, void *repair_arg)
+static blk_status_t dio_read_error(struct inode *inode, struct bio *failed_bio,
+				   struct page *page, unsigned int pgoff,
+				   u64 start, u64 end, int failed_mirror,
+				   bio_end_io_t *repair_endio, void *repair_arg)
 {
 	struct io_failure_record *failrec;
 	struct extent_io_tree *io_tree = &BTRFS_I(inode)->io_tree;
@@ -7993,18 +7994,19 @@ static int dio_read_error(struct inode *inode, struct bio *failed_bio,
 	int read_mode = 0;
 	int segs;
 	int ret;
+	blk_status_t status;
 
 	BUG_ON(bio_op(failed_bio) == REQ_OP_WRITE);
 
 	ret = btrfs_get_io_failure_record(inode, start, end, &failrec);
 	if (ret)
-		return ret;
+		return errno_to_blk_status(ret);
 
 	ret = btrfs_check_dio_repairable(inode, failed_bio, failrec,
 					 failed_mirror);
 	if (!ret) {
 		free_io_failure(failure_tree, io_tree, failrec);
-		return -EIO;
+		return BLK_STS_IOERR;
 	}
 
 	segs = bio_segments(failed_bio);
@@ -8016,23 +8018,19 @@ static int dio_read_error(struct inode *inode, struct bio *failed_bio,
 	isector >>= inode->i_sb->s_blocksize_bits;
 	bio = btrfs_create_repair_bio(inode, failed_bio, failrec, page,
 				pgoff, isector, repair_endio, repair_arg);
-	if (!bio) {
-		free_io_failure(failure_tree, io_tree, failrec);
-		return -EIO;
-	}
 	bio_set_op_attrs(bio, REQ_OP_READ, read_mode);
 
 	btrfs_debug(BTRFS_I(inode)->root->fs_info,
 		    "Repair DIO Read Error: submitting new dio read[%#x] to this_mirror=%d, in_validation=%d\n",
 		    read_mode, failrec->this_mirror, failrec->in_validation);
 
-	ret = submit_dio_repair_bio(inode, bio, failrec->this_mirror);
-	if (ret) {
+	status = submit_dio_repair_bio(inode, bio, failrec->this_mirror);
+	if (status) {
 		free_io_failure(failure_tree, io_tree, failrec);
 		bio_put(bio);
 	}
 
-	return ret;
+	return status;
 }
 
 struct btrfs_retry_complete {
@@ -8059,6 +8057,7 @@ static void btrfs_retry_endio_nocsum(struct bio *bio)
 	ASSERT(bio->bi_io_vec->bv_len == btrfs_inode_sectorsize(inode));
 
 	done->uptodate = 1;
+	ASSERT(!bio_flagged(bio, BIO_CLONED));
 	bio_for_each_segment_all(bvec, bio, i)
 		clean_io_failure(BTRFS_I(inode)->root->fs_info, failure_tree,
 				 io_tree, done->start, bvec->bv_page,
@@ -8068,8 +8067,8 @@ end:
 	bio_put(bio);
 }
 
-static int __btrfs_correct_data_nocsum(struct inode *inode,
-				       struct btrfs_io_bio *io_bio)
+static blk_status_t __btrfs_correct_data_nocsum(struct inode *inode,
+						struct btrfs_io_bio *io_bio)
 {
 	struct btrfs_fs_info *fs_info;
 	struct bio_vec bvec;
@@ -8079,8 +8078,8 @@ static int __btrfs_correct_data_nocsum(struct inode *inode,
 	unsigned int pgoff;
 	u32 sectorsize;
 	int nr_sectors;
-	int ret;
-	int err = 0;
+	blk_status_t ret;
+	blk_status_t err = BLK_STS_OK;
 
 	fs_info = BTRFS_I(inode)->root->fs_info;
 	sectorsize = fs_info->sectorsize;
@@ -8150,6 +8149,7 @@ static void btrfs_retry_endio(struct bio *bio)
 	io_tree = &BTRFS_I(inode)->io_tree;
 	failure_tree = &BTRFS_I(inode)->io_failure_tree;
 
+	ASSERT(!bio_flagged(bio, BIO_CLONED));
 	bio_for_each_segment_all(bvec, bio, i) {
 		ret = __readpage_endio_check(inode, io_bio, i, bvec->bv_page,
 					     bvec->bv_offset, done->start,
@@ -8185,11 +8185,12 @@ static blk_status_t __btrfs_subio_endio_read(struct inode *inode,
 	int csum_pos;
 	bool uptodate = (err == 0);
 	int ret;
+	blk_status_t status;
 
 	fs_info = BTRFS_I(inode)->root->fs_info;
 	sectorsize = fs_info->sectorsize;
 
-	err = 0;
+	err = BLK_STS_OK;
 	start = io_bio->logical;
 	done.inode = inode;
 	io_bio->bio.bi_iter = io_bio->iter;
@@ -8211,12 +8212,12 @@ try_again:
 		done.start = start;
 		init_completion(&done.done);
 
-		ret = dio_read_error(inode, &io_bio->bio, bvec.bv_page,
-				pgoff, start, start + sectorsize - 1,
-				io_bio->mirror_num,
-				btrfs_retry_endio, &done);
-		if (ret) {
-			err = errno_to_blk_status(ret);
+		status = dio_read_error(inode, &io_bio->bio, bvec.bv_page,
+					pgoff, start, start + sectorsize - 1,
+					io_bio->mirror_num, btrfs_retry_endio,
+					&done);
+		if (status) {
+			err = status;
 			goto next;
 		}
 
@@ -8252,7 +8253,7 @@ static blk_status_t btrfs_subio_endio_read(struct inode *inode,
 		if (unlikely(err))
 			return __btrfs_correct_data_nocsum(inode, io_bio);
 		else
-			return 0;
+			return BLK_STS_OK;
 	} else {
 		return __btrfs_subio_endio_read(inode, io_bio, err);
 	}
@@ -8425,9 +8426,9 @@ static inline blk_status_t btrfs_lookup_and_bind_dio_csum(struct inode *inode,
 	return 0;
 }
 
-static inline int __btrfs_submit_dio_bio(struct bio *bio, struct inode *inode,
-					 u64 file_offset, int skip_sum,
-					 int async_submit)
+static inline blk_status_t
+__btrfs_submit_dio_bio(struct bio *bio, struct inode *inode, u64 file_offset,
+		       int skip_sum, int async_submit)
 {
 	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
 	struct btrfs_dio_private *dip = bio->bi_private;
@@ -8490,6 +8491,7 @@ static int btrfs_submit_direct_hook(struct btrfs_dio_private *dip,
 	int clone_offset = 0;
 	int clone_len;
 	int ret;
+	blk_status_t status;
 
 	map_length = orig_bio->bi_iter.bi_size;
 	submit_len = map_length;
@@ -8539,9 +8541,9 @@ static int btrfs_submit_direct_hook(struct btrfs_dio_private *dip,
 		 */
 		atomic_inc(&dip->pending_bios);
 
-		ret = __btrfs_submit_dio_bio(bio, inode, file_offset, skip_sum,
-					     async_submit);
-		if (ret) {
+		status = __btrfs_submit_dio_bio(bio, inode, file_offset, skip_sum,
+						async_submit);
+		if (status) {
 			bio_put(bio);
 			atomic_dec(&dip->pending_bios);
 			goto out_err;
@@ -8559,9 +8561,9 @@ static int btrfs_submit_direct_hook(struct btrfs_dio_private *dip,
 	} while (submit_len > 0);
 
 submit:
-	ret = __btrfs_submit_dio_bio(bio, inode, file_offset, skip_sum,
-				     async_submit);
-	if (!ret)
+	status = __btrfs_submit_dio_bio(bio, inode, file_offset, skip_sum,
+					async_submit);
+	if (!status)
 		return 0;
 
 	bio_put(bio);
