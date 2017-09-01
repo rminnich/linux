@@ -888,6 +888,7 @@ efi_status_t efi_exit_boot_services(efi_system_table_t *sys_table_arg,
 	return EFI_SUCCESS;
 
 free_map:
+	if(0)
 	efi_call_early(free_pool, *map->map);
 fail:
 	return status;
