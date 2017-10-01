@@ -98,6 +98,7 @@
  *
  */
 ENTRY(smm_relocation_start)
+1: jmp 1b
 	mov $0x38000 + 0x7ef8, %ebx
 smm_relocate:
 	/* Get this CPU's LAPIC ID */
