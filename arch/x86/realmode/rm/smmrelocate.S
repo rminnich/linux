@@ -114,7 +114,7 @@ smm_relocate:
 	movl $pa_smm_start, %eax
 	subl %edx, %eax	/* subtract offset, see above */
 
-//	addr32 movl %eax, (%ebx)
+	addr32 movl %eax, (%ebx)
 
 	/* The next section of code is potentially southbridge specific */
 	/* Clear SMI status */
