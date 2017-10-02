@@ -349,6 +349,7 @@ static void smm_relocate(void)
 		longjmpsmmhandler[3],
 		longjmpsmmhandler[4]);
 	memcpy(__va(0xa0000), longjmpsmmhandler, sizeof(longjmpsmmhandler));
+	printk(KERN_ERR "Be aware ... we are jamming a jmp . into the long jmpsmmhandler at a0000\n");
 	longjmpsmmhandler[1] = 0xfe;
 	longjmpsmmhandler[0] = 0xeb;
 	printk("  ... raise SMI#\n");
