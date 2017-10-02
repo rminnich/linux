@@ -1,0 +1,6 @@
+Since qemu stock fails badly on ubuntu 17.04, you might need to build
+from scratch. 
+
+Here's the command I use
+'./configure' '--target-list=x86_64-softmmu'
+

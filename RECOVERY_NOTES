@@ -1,0 +1,6 @@
+LinuxBIOS is the wrong thing? I guess I started that and then realized I needed the i82801 support? 
+
+In any event for now that's what I'm running with.
+
+OK, leaving all smm enablement in coreboot, but NOT locking the smm ram, seems to allow me to
+get to the 0x38000 infinite loop in linux arch/x86/realmode/rm/smmhandler.S
