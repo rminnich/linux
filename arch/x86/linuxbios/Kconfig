@@ -1,5 +1,0 @@
-config SMM_TSEG
-	int "TSET"
-	default 0
-	---help---
-	  Say yes for a TSEG
