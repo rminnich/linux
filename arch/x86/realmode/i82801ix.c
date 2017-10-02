@@ -348,9 +348,9 @@ static void smm_relocate(void)
 		longjmpsmmhandler[2],
 		longjmpsmmhandler[3],
 		longjmpsmmhandler[4]);
-//	longjmpsmmhandler[1] = 0xfe;
-//	longjmpsmmhandler[0] = 0xeb;
 	memcpy(__va(0xa0000), longjmpsmmhandler, sizeof(longjmpsmmhandler));
+	longjmpsmmhandler[1] = 0xfe;
+	longjmpsmmhandler[0] = 0xeb;
 	printk("  ... raise SMI#\n");
 	outb(0x00, 0xb2);
 	
