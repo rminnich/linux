@@ -13,9 +13,6 @@ obj-$(CONFIG_HYPERVISOR_GUEST) += hyperv/
 # lguest paravirtualization support
 obj-$(CONFIG_LGUEST_GUEST) += lguest/
 
-# LinuxBIOS for systems without firmware
-obj-$(CONFIG_LinuxBIOS) += linuxbios/
-
 obj-y += realmode/
 obj-y += kernel/
 obj-y += mm/
