@@ -21,7 +21,7 @@
 #include <linux/pci.h>
 #include <linux/init.h>
 #include <asm/pci_x86.h>
-#include "rm/smm.h"
+//#include "rm/smm.h"
 #include "rm/chipset/i82801ix.h"
 #include "rm/chipset/i82801ixnvs.h"
 

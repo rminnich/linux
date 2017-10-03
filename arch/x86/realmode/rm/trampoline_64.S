@@ -121,7 +121,6 @@ ENTRY(startup_32)
 	.code64
 	.balign 4
 ENTRY(startup_64)
-	rsm
 	# Now jump into the kernel using virtual addresses
 	jmpq	*tr_start(%rip)
 
