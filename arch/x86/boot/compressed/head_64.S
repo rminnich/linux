@@ -293,6 +293,9 @@ SYM_CODE_START(startup_64)
 	 * and command line.
 	 */
 
+	movb $0xaa, %al
+	outb %al, $0x80
+1: jmp 1b
 	cld
 	cli
 
