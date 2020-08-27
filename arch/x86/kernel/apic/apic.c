@@ -884,6 +884,7 @@ static int __init calibrate_APIC_clock(void)
 	 */
 	local_irq_enable();
 
+	pr_err("tsc_khz is %d\n", tsc_khz);
 	while (lapic_cal_loops <= LAPIC_CAL_LOOPS) {
 		/* Wait for a tick to elapse */
 		while (1) {
@@ -1929,7 +1930,7 @@ void __init enable_IR_x2apic(void)
 static int __init detect_init_APIC(void)
 {
 	if (!boot_cpu_has(X86_FEATURE_APIC)) {
-		pr_info("No local APIC present\n");
+		pr_info("No local APIC present -- bullshit\n");
 		return -1;
 	}
 
@@ -1996,14 +1997,17 @@ int __init apic_force_enable(unsigned long addr)
 static int __init detect_init_APIC(void)
 {
 	/* Disabled by kernel option? */
+	pr_err("%s\n", __func__);
 	if (disable_apic)
 		return -1;
 
 	switch (boot_cpu_data.x86_vendor) {
 	case X86_VENDOR_AMD:
+		pr_err("AMD\n");
 		if ((boot_cpu_data.x86 == 6 && boot_cpu_data.x86_model > 1) ||
 		    (boot_cpu_data.x86 >= 15))
 			break;
+		pr_err("wrong fam\n");
 		goto no_apic;
 	case X86_VENDOR_HYGON:
 		break;
@@ -2017,6 +2021,7 @@ static int __init detect_init_APIC(void)
 	}
 
 	if (!boot_cpu_has(X86_FEATURE_APIC)) {
+		pr_err("WTF boot cpu has it no?\n");
 		/*
 		 * Over-ride BIOS and try to enable the local APIC only if
 		 * "lapic" specified.
@@ -2029,10 +2034,13 @@ static int __init detect_init_APIC(void)
 		if (apic_force_enable(APIC_DEFAULT_PHYS_BASE))
 			return -1;
 	} else {
-		if (apic_verify())
+		if (apic_verify()) {
+			pr_err("apic verify fails\n");
 			return -1;
+		}
 	}
 
+	pr_err("activate\n");
 	apic_pm_activate();
 
 	return 0;

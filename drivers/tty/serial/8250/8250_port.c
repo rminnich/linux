@@ -3196,6 +3196,7 @@ static void serial8250_console_putchar(struct uart_port *port, int ch)
 
 	wait_for_xmitr(up, UART_LSR_THRE);
 	serial_port_out(port, UART_TX, ch);
+	outb(ch, 0x80);
 }
 
 /*

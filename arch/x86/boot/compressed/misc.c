@@ -347,14 +347,17 @@ asmlinkage __visible void *extract_kernel(void *rmode, memptr heap,
 	unsigned long virt_addr = LOAD_PHYSICAL_ADDR;
 	unsigned long needed_size;
 
+	outb(0xee, 0x80);
 	/* Retain x86 boot parameters pointer passed from startup_32/64. */
 	boot_params = rmode;
 
 	/* Clear flags intended for solely in-kernel use. */
 	boot_params->hdr.loadflags &= ~KASLR_FLAG;
 
+	outb(0xef, 0x80);
 	sanitize_boot_params(boot_params);
 
+	outb(0xf0, 0x80);
 	if (boot_params->screen_info.orig_video_mode == 7) {
 		vidmem = (char *) 0xb0000;
 		vidport = 0x3b4;
@@ -366,7 +369,9 @@ asmlinkage __visible void *extract_kernel(void *rmode, memptr heap,
 	lines = boot_params->screen_info.orig_video_lines;
 	cols = boot_params->screen_info.orig_video_cols;
 
+	outb(0xf1, 0x80);
 	console_init();
+	outb(0xf2, 0x80);
 
 	/*
 	 * Save RSDP address for later use. Have this after console_init()
@@ -375,7 +380,9 @@ asmlinkage __visible void *extract_kernel(void *rmode, memptr heap,
 	 */
 	boot_params->acpi_rsdp_addr = get_rsdp_addr();
 
+	outb(0xf3, 0x80);
 	debug_putstr("early console in extract_kernel\n");
+	outb(0xf3, 0x80);
 
 	free_mem_ptr     = heap;	/* Heap */
 	free_mem_end_ptr = heap + BOOT_HEAP_SIZE;

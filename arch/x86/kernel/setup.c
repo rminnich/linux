@@ -967,6 +967,7 @@ void __init setup_arch(char **cmdline_p)
 	memblock_x86_reserve_range_setup_data();
 
 	if (acpi_mps_check()) {
+		pr_err("acpi mps check no good so no apic\n");
 #ifdef CONFIG_X86_LOCAL_APIC
 		disable_apic = 1;
 #endif

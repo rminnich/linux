@@ -295,7 +295,7 @@ SYM_CODE_START(startup_64)
 
 	movb $0xaa, %al
 	outb %al, $0x80
-1: jmp 1b
+//1: jmp 1b
 	cld
 	cli
 
@@ -533,6 +533,8 @@ SYM_FUNC_START_LOCAL_NOALIGN(.Lrelocated)
 /*
  * Clear BSS (stack is currently empty)
  */
+	movb $0xab, %al
+	outb %al, $0x80
 	xorl	%eax, %eax
 	leaq    _bss(%rip), %rdi
 	leaq    _ebss(%rip), %rcx
@@ -550,12 +552,31 @@ SYM_FUNC_START_LOCAL_NOALIGN(.Lrelocated)
 	movl	$z_input_len, %ecx	/* input_len */
 	movq	%rbp, %r8		/* output target address */
 	movl	$z_output_len, %r9d	/* decompressed length, end of relocs */
+	movb $0xad, %al
+	outb %al, $0x80
 	call	extract_kernel		/* returns kernel location in %rax */
 	popq	%rsi
 
 /*
  * Jump to the decompressed kernel.
  */
+	pushq %rax
+	outb %al, $0x80
+	shr $8, %rax
+	outb %al, $0x80
+	shr $8, %rax
+	outb %al, $0x80
+	shr $8, %rax
+	outb %al, $0x80
+	shr $8, %rax
+	outb %al, $0x80
+	shr $8, %rax
+	outb %al, $0x80
+	shr $8, %rax
+	outb %al, $0x80
+	shr $8, %rax
+	outb %al, $0x80
+	popq %rax
 	jmp	*%rax
 SYM_FUNC_END(.Lrelocated)
 
