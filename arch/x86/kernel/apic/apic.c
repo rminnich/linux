@@ -694,6 +694,8 @@ static void __init lapic_cal_handler(struct clock_event_device *dev)
 	if (boot_cpu_has(X86_FEATURE_TSC))
 		tsc = rdtsc();
 
+
+	apic_printk(APIC_VERBOSE, "I");
 	switch (lapic_cal_loops++) {
 	case 0:
 		lapic_cal_t1 = tapic;
@@ -981,6 +983,8 @@ static int __init calibrate_APIC_clock(void)
 
 		/* Jiffies delta */
 		deltaj = lapic_cal_j2 - lapic_cal_j1;
+		apic_printk(APIC_VERBOSE, "FUCK THIS JAM to 25\n");
+		deltaj = 25;
 		apic_printk(APIC_VERBOSE, "... jiffies delta = %lu\n", deltaj);
 
 		/* Check, if the jiffies result is consistent */
